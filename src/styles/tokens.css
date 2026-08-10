@@ -1,0 +1,29 @@
+:root {
+  /* — Palet: tinta & champagne — */
+  --ink: #0d0a14;
+  --ink-2: #120e1e;
+  --ink-3: #181230;
+  --ivory: #f3ead8;
+  --ivory-dim: #b9af9d;
+  --gold: #c9a36a;
+  --gold-bright: #ecd3a1;
+  --rose: #d8a29b;
+  --hair: rgba(201, 163, 106, 0.22);
+
+  /* — Tipografi — */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Jost", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* — Skala ukuran fluid — */
+  --step--1: clamp(0.72rem, 0.7rem + 0.1vw, 0.8rem);
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.15rem);
+  --step-1: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.3vw, 2.4rem);
+  --step-3: clamp(2.2rem, 1.6rem + 2.6vw, 4rem);
+  --step-4: clamp(3rem, 2rem + 5vw, 6.5rem);
+
+  /* — Gerak: perlahan seperti cahaya — */
+  --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-med: 0.8s;
+}

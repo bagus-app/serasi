@@ -1,0 +1,23 @@
+---
+// Lapisan langit 3D — paling belakang, murni dekoratif
+---
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<script>
+  import { initSky } from "../three/sky";
+  const canvas = document.getElementById("sky");
+  if (canvas instanceof HTMLCanvasElement) initSky(canvas);
+</script>
+
+<style>
+  #sky {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    opacity: 0;
+    transition: opacity 1.8s var(--ease-lux);
+  }
+  #sky.ready { opacity: 1; }
+</style>

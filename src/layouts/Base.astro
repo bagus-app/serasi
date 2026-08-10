@@ -1,0 +1,37 @@
+---
+import "@fontsource/cormorant-garamond/300.css";
+import "@fontsource/cormorant-garamond/300-italic.css";
+import "@fontsource/cormorant-garamond/400.css";
+import "@fontsource/cormorant-garamond/400-italic.css";
+import "@fontsource/cormorant-garamond/500.css";
+import "@fontsource/jost/300.css";
+import "@fontsource/jost/400.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "../styles/tokens.css";
+import "../styles/base.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = "Arka & Laras — Langit yang Sama",
+  description =
+    "Undangan pernikahan Arka & Laras — 20 Juni 2026. Satu langit, dua bintang, dan doa yang tak terhitung.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <slot />
+    <div class="grain" aria-hidden="true"></div>
+  </body>
+</html>

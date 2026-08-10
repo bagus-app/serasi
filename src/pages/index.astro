@@ -1,17 +1,89 @@
 ---
-
+import Base from "../layouts/Base.astro";
+import SkyCanvas from "../components/SkyCanvas.astro";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base>
+  <SkyCanvas />
+  <div class="vignette" aria-hidden="true"></div>
+
+  <main>
+    <!-- Adegan ① : Pembuka -->
+    <section class="scene">
+      <p class="kicker">Undangan Pernikahan</p>
+      <h1 class="names">
+        <span class="name">Arka</span>
+        <span class="amp">&amp;</span>
+        <span class="name">Laras</span>
+      </h1>
+      <p class="tagline">Dua bintang yang memutuskan berbagi satu langit.</p>
+      <p class="date">20 · 06 · 2026 — BANDUNG</p>
+      <div class="cue" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- Adegan ② : placeholder Rasi Kenangan -->
+    <section class="scene">
+      <blockquote>“Langit yang sama,<br />doa yang sama.”</blockquote>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .vignette {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 115%, rgba(26, 19, 48, 0.9) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% -25%, rgba(23, 17, 40, 0.85) 0%, transparent 55%);
+  }
+
+  .scene {
+    min-height: 100svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 2rem;
+  }
+
+  .names {
+    font-family: var(--font-display);
+    font-weight: 300; font-style: italic;
+    font-size: var(--step-4); line-height: 1.05;
+    margin: 0.35em 0;
+    display: flex; flex-direction: column; align-items: center; gap: 0.05em;
+  }
+  .amp { font-size: 0.4em; font-style: normal; color: var(--gold); }
+
+  .tagline {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--ivory-dim);
+    max-width: 34ch;
+  }
+  .date {
+    margin-top: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.4em;
+    color: var(--gold);
+  }
+
+  .cue { margin-top: 4rem; }
+  .cue span {
+    display: block; width: 1px; height: 64px;
+    background: linear-gradient(to bottom, transparent, var(--gold-bright), transparent);
+    animation: napas 3s var(--ease-lux) infinite;
+  }
+  @keyframes napas {
+    0%, 100% { opacity: 0.25; transform: scaleY(0.7); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  blockquote {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 300;
+    font-size: var(--step-3); line-height: 1.3;
+  }
+
+  @media (min-width: 768px) {
+    .names { flex-direction: row; gap: 0.3em; }
+  }
+</style>
