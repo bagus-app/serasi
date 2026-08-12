@@ -4,12 +4,30 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import gsap from "gsap";
+import { buildMemories, buildMonogram, type MemoryData } from "./mapper";
 
-export function initSky(canvas: HTMLCanvasElement) {
+export interface SkyConfig {
+  memories: MemoryData[];
+  monogram: string;
+}
+
+export interface SkyHandle {
+  setProgress(p: number): void;
+  spawnWishStar(): void;
+  restoreWish(n: number): void;
+}
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const smooth = (a: number, b: number, x: number) => {
+  const k = clamp01((x - a) / (b - a));
+  return k * k * (3 - 2 * k);
+};
+
+export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const small = matchMedia("(max-width: 768px)").matches;
 
-  /* — Panggung — */
+  /* ============ PANGGUNG ============ */
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
@@ -20,10 +38,10 @@ export function initSky(canvas: HTMLCanvasElement) {
   renderer.setSize(innerWidth, innerHeight);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 140);
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 160);
   camera.position.set(0, 0, 26);
 
-  /* — Ribuan bintang dihitung GPU — */
+  /* ============ MEDAN BINTANG (GPU) ============ */
   const COUNT = small ? 1600 : 4200;
   const pos = new Float32Array(COUNT * 3);
   const size = new Float32Array(COUNT);
@@ -32,7 +50,7 @@ export function initSky(canvas: HTMLCanvasElement) {
   for (let i = 0; i < COUNT; i++) {
     pos[i * 3] = (Math.random() - 0.5) * 90;
     pos[i * 3 + 1] = (Math.random() - 0.5) * 55;
-    pos[i * 3 + 2] = 8 - Math.random() * 80;
+    pos[i * 3 + 2] = 8 - Math.random() * 110;
     size[i] = 0.6 + Math.random() * 2.2;
     phase[i] = Math.random() * Math.PI * 2;
     tint[i] = Math.random();
@@ -60,7 +78,7 @@ export function initSky(canvas: HTMLCanvasElement) {
         gl_Position = projectionMatrix * mv;
         gl_PointSize = min(aSize * (120.0 / -mv.z), 16.0) * uPixelRatio;
         vPhase = aPhase; vTint = aTint;
-        vFade = smoothstep(-85.0, -6.0, mv.z);
+        vFade = smoothstep(-100.0, -6.0, mv.z);
       }`,
     fragmentShader: `
       uniform float uTime;
@@ -78,7 +96,7 @@ export function initSky(canvas: HTMLCanvasElement) {
   });
   scene.add(new THREE.Points(geo, starMat));
 
-  /* — Tekstur cahaya (dibuat sendiri, tanpa aset) — */
+  /* ============ TEKSTUR CAHAYA ============ */
   function makeGlow(): THREE.CanvasTexture {
     const c = document.createElement("canvas");
     c.width = c.height = 128;
@@ -94,6 +112,7 @@ export function initSky(canvas: HTMLCanvasElement) {
   }
   const glow = makeGlow();
 
+  /* ============ DUA BINTANG UTAMA ============ */
   function makeHero(scale: number): THREE.Sprite {
     const s = new THREE.Sprite(
       new THREE.SpriteMaterial({
@@ -107,8 +126,6 @@ export function initSky(canvas: HTMLCanvasElement) {
     scene.add(s);
     return s;
   }
-
-  /* — Dua bintang utama — */
   const arka = makeHero(6);
   const laras = makeHero(5);
   if (reduced) {
@@ -121,9 +138,73 @@ export function initSky(canvas: HTMLCanvasElement) {
     gsap.to(laras.position, { x: 1.35, y: -0.2, z: 2, duration: 4.5, delay: 0.3, ease: "power3.out" });
   }
 
-  /* — Bintang jatuh sesekali — */
+  /* ============ RASI DARI CONFIG ============ */
+  const cons = buildMemories(config.memories, glow, small);
+  cons.forEach((c) => scene.add(c.group));
+
+  /* ============ MONOGRAM DARI CONFIG ============ */
+  const mono = buildMonogram(config.monogram, glow);
+  scene.add(mono.group);
+
+  /* ============ BINTANG DOA ============ */
+  function placeWish(nearCamera: boolean): THREE.Sprite {
+    const s = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: glow,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        color: Math.random() < 0.5 ? 0xf3d9c4 : 0xecd3a1,
+        opacity: nearCamera ? 0 : 0.85,
+      })
+    );
+    s.scale.setScalar(0.001);
+    if (nearCamera) {
+      s.position.set(
+        camera.position.x + (Math.random() - 0.5) * 9,
+        camera.position.y + (Math.random() - 0.5) * 5,
+        camera.position.z - 12 - Math.random() * 10
+      );
+    } else {
+      s.position.set(
+        (Math.random() - 0.5) * 34,
+        (Math.random() - 0.5) * 18,
+        -14 - Math.random() * 62
+      );
+    }
+    scene.add(s);
+    return s;
+  }
+
+  /* ============ JALUR KAMERA ============ */
+  const camPath = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, 26),
+    new THREE.Vector3(0, 0.5, 12),
+    new THREE.Vector3(-0.4, 0.2, 0),
+    new THREE.Vector3(0.6, 0, -16),
+    new THREE.Vector3(-0.6, 0.3, -34),
+    new THREE.Vector3(0.5, 0, -52),
+    new THREE.Vector3(0, 0.5, -70),
+    new THREE.Vector3(0, 0.8, -84),
+  ]);
+  const lookPath = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, 8),
+    new THREE.Vector3(1.9, 0.2, -8),
+    new THREE.Vector3(-1.9, 0, -26),
+    new THREE.Vector3(1.9, 0.2, -44),
+    new THREE.Vector3(-1.9, 0, -62),
+    new THREE.Vector3(0, 0.6, -92),
+  ]);
+
+  /* ============ BINTANG JATUH ============ */
   const meteor = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glow, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 })
+    new THREE.SpriteMaterial({
+      map: glow,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      opacity: 0,
+    })
   );
   meteor.scale.set(0.4, 5, 1);
   meteor.visible = false;
@@ -133,7 +214,11 @@ export function initSky(canvas: HTMLCanvasElement) {
   const mDir = new THREE.Vector3();
 
   function spawnMeteor(t: number) {
-    meteor.position.set((Math.random() - 0.5) * 50, 14 + Math.random() * 6, -22 - Math.random() * 26);
+    meteor.position.set(
+      camera.position.x + (Math.random() - 0.5) * 46,
+      camera.position.y + 12 + Math.random() * 6,
+      camera.position.z - 18 - Math.random() * 24
+    );
     mDir.set(-0.55 - Math.random() * 0.3, -0.6 - Math.random() * 0.3, 0).normalize();
     meteor.material.rotation = Math.atan2(mDir.y, mDir.x) - Math.PI / 2;
     meteor.visible = true;
@@ -141,27 +226,47 @@ export function initSky(canvas: HTMLCanvasElement) {
     nextMeteor = t + 6 + Math.random() * 9;
   }
 
-  /* — Bloom sinematik — */
+  /* ============ CAKRAWALA ============ */
+  const horizon = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: glow,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      opacity: 0.4,
+      color: 0xe8c894,
+    })
+  );
+  horizon.position.set(0, -7, -96);
+  horizon.scale.set(90, 34, 1);
+  scene.add(horizon);
+
+  /* ============ BLOOM ============ */
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), small ? 0.7 : 0.9, 0.75, 0.12));
+  composer.addPass(
+    new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), small ? 0.7 : 0.9, 0.75, 0.12)
+  );
   composer.addPass(new OutputPass());
 
-  /* — Paralaks kursor (desktop saja) — */
+  /* ============ PARALAKS ============ */
   const mouse = { x: 0, y: 0 };
-  if (!reduced && !small) {
-    addEventListener("pointermove", (e) => {
-      mouse.x = (e.clientX / innerWidth - 0.5) * 2;
-      mouse.y = (e.clientY / innerHeight - 0.5) * 2;
-    }, { passive: true });
+  let px = 0, py = 0;
+  if (!small) {
+    addEventListener(
+      "pointermove",
+      (e) => {
+        mouse.x = (e.clientX / innerWidth - 0.5) * 2;
+        mouse.y = (e.clientY / innerHeight - 0.5) * 2;
+      },
+      { passive: true }
+    );
   }
 
-  /* — Loop dengan jeda otomatis — */
+  /* ============ LOOP ============ */
   const clock = new THREE.Clock();
-  let t = 0;
-  let raf = 0;
-  let running = false;
-  let firstFrame = true;
+  let t = 0, raf = 0, running = false, firstFrame = true;
+  let targetP = 0, p = 0;
 
   function frame() {
     if (!running) return;
@@ -170,27 +275,44 @@ export function initSky(canvas: HTMLCanvasElement) {
     t += dt;
     starMat.uniforms.uTime.value = t;
 
-    // Kamera: hanyut perlahan + paralaks lembut
-    camera.position.z = 26 - Math.min(t * 0.15, 9);
-    camera.position.x += (mouse.x * 1.2 - camera.position.x) * 0.02;
-    camera.position.y += (-mouse.y * 0.8 - camera.position.y) * 0.02;
-    camera.lookAt(0, 0, 0);
+    p += (targetP - p) * 0.06;
+    camera.position.copy(camPath.getPoint(p));
+    px += (mouse.x * 1.1 - px) * 0.02;
+    py += (-mouse.y * 0.7 - py) * 0.02;
+    camera.position.x += px;
+    camera.position.y += py;
+    camera.lookAt(lookPath.getPoint(Math.min(p + 0.045, 1)));
 
-    // Dua bintang bernapas
-    const breath = 1 + Math.sin(t * 1.2) * 0.06;
-    arka.scale.setScalar(6 * breath);
+    const hFade = 1 - smooth(0.03, 0.14, p);
+    (arka.material as THREE.SpriteMaterial).opacity = hFade;
+    (laras.material as THREE.SpriteMaterial).opacity = hFade;
+    arka.scale.setScalar(6 * (1 + Math.sin(t * 1.2) * 0.06));
     laras.scale.setScalar(5 * (1 + Math.sin(t * 1.2 + 1.4) * 0.06));
 
-    // Bintang jatuh
-    if (!reduced) {
-      if (mLife < 0 && t > nextMeteor) spawnMeteor(t);
-      if (mLife >= 0) {
-        mLife += dt;
-        meteor.position.addScaledVector(mDir, dt * 24);
-        meteor.material.opacity = Math.sin(Math.PI * Math.min(mLife / 1.3, 1)) * 0.85;
-        if (mLife > 1.3) { meteor.visible = false; mLife = -1; }
+    const camZ = camera.position.z;
+    for (const c of cons) {
+      const z = c.def.pos[2];
+      const draw = 1 - smooth(z + 10, z + 24, camZ);
+      const vis = draw * smooth(z - 14, z - 2, camZ);
+      c.line.geometry.setDrawRange(0, Math.floor((draw * c.verts) / 2) * 2);
+      c.lineMat.opacity = vis * 0.9;
+      c.starsMat.opacity = vis;
+    }
+
+    mono.mat.opacity = smooth(0.8, 0.93, p) * 0.95;
+
+    if (mLife < 0 && t > nextMeteor) spawnMeteor(t);
+    if (mLife >= 0) {
+      mLife += dt;
+      meteor.position.addScaledVector(mDir, dt * 24);
+      meteor.material.opacity = Math.sin(Math.PI * Math.min(mLife / 1.3, 1)) * 0.85;
+      if (mLife > 1.3) {
+        meteor.visible = false;
+        mLife = -1;
       }
     }
+
+    horizon.material.opacity = 0.34 + Math.sin(t * 0.5) * 0.08;
 
     composer.render();
     if (firstFrame) {
@@ -200,13 +322,15 @@ export function initSky(canvas: HTMLCanvasElement) {
   }
 
   function start() {
-    if (reduced) { composer.render(); canvas.classList.add("ready"); return; }
     if (running) return;
     running = true;
     clock.getDelta();
     frame();
   }
-  function stop() { running = false; cancelAnimationFrame(raf); }
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
 
   document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
 
@@ -218,5 +342,59 @@ export function initSky(canvas: HTMLCanvasElement) {
     starMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
   });
 
+  /* ============ EVENT LISTENERS (komunikasi dengan halaman) ============ */
+
+  addEventListener("sky:progress", ((e: CustomEvent<number>) => {
+    targetP = clamp01(e.detail);
+  }) as EventListener);
+
+  addEventListener("sky:spawnWish", () => {
+    const s = placeWish(true);
+    if (!reduced) {
+      gsap.to(s.material, { opacity: 0.95, duration: 0.5 });
+      gsap.to(s.scale, { x: 2.2, y: 2.2, duration: 1.6, ease: "back.out(2.5)" });
+    } else {
+      s.scale.setScalar(2);
+      (s.material as THREE.SpriteMaterial).opacity = 0.9;
+      composer.render();
+    }
+  });
+
+  addEventListener("sky:restoreWish", ((e: CustomEvent<number>) => {
+    const count = e.detail;
+    for (let i = 0; i < count; i++) placeWish(false);
+    if (reduced) composer.render();
+  }) as EventListener);
+
+  /* ============ REDUCED MODE ============ */
+  if (reduced) {
+    composer.render();
+    canvas.classList.add("ready");
+    return {
+      setProgress: () => {},
+      spawnWishStar: () => {
+        const s = placeWish(true);
+        s.scale.setScalar(2);
+        (s.material as THREE.SpriteMaterial).opacity = 0.9;
+        composer.render();
+      },
+      restoreWish: (n) => {
+        for (let i = 0; i < n; i++) placeWish(false);
+        composer.render();
+      },
+    };
+  }
+
   start();
+  return {
+    setProgress: (v) => { targetP = clamp01(v); },
+    spawnWishStar: () => {
+      const s = placeWish(true);
+      gsap.to(s.material, { opacity: 0.95, duration: 0.5 });
+      gsap.to(s.scale, { x: 2.2, y: 2.2, duration: 1.6, ease: "back.out(2.5)" });
+    },
+    restoreWish: (n) => {
+      for (let i = 0; i < n; i++) placeWish(false);
+    },
+  };
 }

@@ -1,89 +1,379 @@
 ---
 import Base from "../layouts/Base.astro";
-import SkyCanvas from "../components/SkyCanvas.astro";
+import { getCollection } from "astro:content";
+
+const weddings = await getCollection("weddings");
+const demo = weddings[0];
 ---
 
-<Base>
-  <SkyCanvas />
-  <div class="vignette" aria-hidden="true"></div>
+<Base
+  title="Langit yang Sama — Undangan Pernikahan Digital Premium"
+  description="Undangan pernikahan sinematik dalam 3D: rasi kenangan, bintang doa, dan langit yang sama. Satu platform untuk semua pasangan."
+>
+  <div class="stars" aria-hidden="true"></div>
 
-  <main>
-    <!-- Adegan ① : Pembuka -->
-    <section class="scene">
-      <p class="kicker">Undangan Pernikahan</p>
-      <h1 class="names">
-        <span class="name">Arka</span>
-        <span class="amp">&amp;</span>
-        <span class="name">Laras</span>
+  <main class="showcase">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="orbit" aria-hidden="true"></div>
+      <p class="ornament" aria-hidden="true">✦</p>
+      <p class="kicker">Undangan Pernikahan Digital</p>
+      <h1 class="hero-title">
+        <span class="mask"><span>Langit yang Sama</span></span>
       </h1>
-      <p class="tagline">Dua bintang yang memutuskan berbagi satu langit.</p>
-      <p class="date">20 · 06 · 2026 — BANDUNG</p>
+      <p class="hero-tagline">
+        Pengalaman undangan sinematik dalam 3D — satu langit, dua bintang, dan doa yang tak terhitung.
+      </p>
+      <div class="hero-cta">
+        <a href="#demos" class="btn btn--solid">Lihat Demo</a>
+        <a href="#kontak" class="btn">Pesan Sekarang</a>
+      </div>
       <div class="cue" aria-hidden="true"><span></span></div>
     </section>
 
-    <!-- Adegan ② : placeholder Rasi Kenangan -->
-    <section class="scene">
-      <blockquote>“Langit yang sama,<br />doa yang sama.”</blockquote>
+    <!-- PITA BERJALAN -->
+    <div class="ribbon" aria-hidden="true">
+      <div class="ribbon-track">
+        <span>Langit yang Sama ✦ Undangan Sinematik ✦ Rasi Kenangan ✦ Bintang Doa ✦ Link Custom ✦&nbsp;</span>
+        <span>Langit yang Sama ✦ Undangan Sinematik ✦ Rasi Kenangan ✦ Bintang Doa ✦ Link Custom ✦&nbsp;</span>
+      </div>
+    </div>
+
+    <!-- DEMO TUNGGAL -->
+    <section class="wrap demos" id="demos">
+      <p class="kicker rv">Demo</p>
+      <h2 class="section-title rv">Rasakan Sendiri</h2>
+      <p class="demo-intro rv">
+        Satu demo, pengalaman penuh — gulirkan dari bintang pertama hingga segel terakhir.
+      </p>
+      <div class="demo-grid demo-grid--single">
+        {
+          demo && (
+            <a href={`/${demo.data.slug}`} class="demo-card rv">
+              <span class="demo-monogram">{demo.data.couple.monogram}</span>
+              <h3>{demo.data.couple.nick[0]} &amp; {demo.data.couple.nick[1]}</h3>
+              <p>{demo.data.date.display} · {demo.data.venue.address.split(",").pop()?.trim()}</p>
+              <span class="demo-link">Masuk ke undangan →</span>
+            </a>
+          )
+        }
+      </div>
     </section>
+
+    <!-- FITUR -->
+    <section class="wrap features">
+      <p class="kicker rv">Fitur Premium</p>
+      <h2 class="section-title rv">Mengapa Berbeda?</h2>
+      <div class="feature-grid">
+        <div class="feature rv">
+          <span class="feature-icon">✦</span>
+          <h3>Langit 3D Sinematik</h3>
+          <p>Kamera terbang melewati rasi kenangan — setiap guliran adalah adegan film.</p>
+        </div>
+        <div class="feature rv">
+          <span class="feature-icon">✦</span>
+          <h3>Bintang Doa</h3>
+          <p>Setiap tamu menitipkan cahaya yang menetap selamanya di langit pernikahan.</p>
+        </div>
+        <div class="feature rv">
+          <span class="feature-icon">✦</span>
+          <h3>Personal Otomatis</h3>
+          <p>Nama tamu terisi sendiri lewat tautan — tanpa login, tanpa ribet.</p>
+        </div>
+        <div class="feature rv">
+          <span class="feature-icon">✦</span>
+          <h3>Link Custom</h3>
+          <p>Setiap pasangan punya alamat sendiri: domainmu.com/nama-kalian.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HARGA -->
+    <section class="wrap pricing">
+      <p class="kicker rv">Paket Harga</p>
+      <h2 class="section-title rv">Pilih Langitmu</h2>
+      <div class="price-grid">
+        <article class="price-card rv">
+          <h3>Basic</h3>
+          <p class="price">Rp 1.500.000</p>
+          <ul>
+            <li>✓ Semua fitur premium</li>
+            <li>✓ Link custom: domain.com/nama</li>
+            <li>✓ Hosting 1 tahun</li>
+            <li>— Subdomain sendiri</li>
+          </ul>
+        </article>
+        <article class="price-card price-card--featured rv">
+          <span class="price-badge">Terpopuler</span>
+          <h3>Premium</h3>
+          <p class="price">Rp 2.500.000</p>
+          <ul>
+            <li>✓ Semua fitur Basic</li>
+            <li>✓ Subdomain: nama.domain.com</li>
+            <li>✓ Hosting 2 tahun</li>
+            <li>✓ Revisi konten 3 kali</li>
+          </ul>
+        </article>
+        <article class="price-card rv">
+          <h3>Sultan</h3>
+          <p class="price">Rp 4.000.000</p>
+          <ul>
+            <li>✓ Semua fitur Premium</li>
+            <li>✓ Domain sendiri: nama.com</li>
+            <li>✓ Hosting 3 tahun</li>
+            <li>✓ Revisi tanpa batas</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- KONTAK -->
+    <section class="wrap contact" id="kontak">
+      <p class="kicker rv">Kontak</p>
+      <h2 class="section-title rv">Pesan Langitmu</h2>
+      <p class="contact-text rv">
+        Siap memulai perjalanan ini? Hubungi kami untuk konsultasi gratis —
+        kami balas dalam hitungan jam, bukan hari.
+      </p>
+      <a
+        href="https://wa.me/6281200000000?text=Halo,%20saya%20tertarik%20dengan%20undangan%20Langit%20yang%20Sama"
+        target="_blank"
+        rel="noopener"
+        class="btn btn--solid rv"
+      >
+        Chat WhatsApp
+      </a>
+    </section>
+
+    <footer class="foot">
+      <span>Langit yang Sama · MMXXVI</span>
+      <span>dibangun dengan cinta di bawah bintang</span>
+    </footer>
   </main>
 </Base>
 
-<style>
-  .vignette {
-    position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(ellipse at 50% 115%, rgba(26, 19, 48, 0.9) 0%, transparent 60%),
-      radial-gradient(ellipse at 50% -25%, rgba(23, 17, 40, 0.85) 0%, transparent 55%);
-  }
+<script>
+  import { initReveal } from "../scripts/reveal";
+  initReveal();
+</script>
 
-  .scene {
+<style>
+  .showcase { display: flex; flex-direction: column; }
+
+  /* — Hero — */
+  .hero {
     min-height: 100svh;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    text-align: center; padding: 2rem;
+    text-align: center;
+    padding: 4rem 2rem 2rem;
+    position: relative;
   }
-
-  .names {
-    font-family: var(--font-display);
-    font-weight: 300; font-style: italic;
-    font-size: var(--step-4); line-height: 1.05;
-    margin: 0.35em 0;
-    display: flex; flex-direction: column; align-items: center; gap: 0.05em;
+  .ornament {
+    color: var(--gold);
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.4rem;
   }
-  .amp { font-size: 0.4em; font-style: normal; color: var(--gold); }
-
-  .tagline {
+  .ornament::before, .ornament::after {
+    content: "";
+    width: 44px; height: 1px;
+    background: var(--hair);
+  }
+  .hero-title {
     font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--step-4);
+    line-height: 1.1;
+    margin: 0.6rem 0 1rem;
+  }
+  .hero-title .mask span {
+    animation: slide-up 1.2s var(--ease-lux) 0.25s forwards;
+  }
+  @keyframes slide-up { to { transform: none; } }
+  .hero-tagline {
     font-size: var(--step-1);
     color: var(--ivory-dim);
-    max-width: 34ch;
+    max-width: 44ch;
+    margin-bottom: 2.4rem;
   }
-  .date {
-    margin-top: 2.5rem;
+  .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+  /* Cincin orbit berputar pelan di belakang judul */
+  .orbit {
+    position: absolute;
+    top: 50%; left: 50%;
+    translate: -50% -50%;
+    width: min(86vw, 620px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 163, 106, 0.14);
+    animation: putar 48s linear infinite;
+    pointer-events: none;
+  }
+  .orbit::before {
+    content: "";
+    position: absolute;
+    top: -3px; left: 50%;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-bright);
+    box-shadow: 0 0 14px var(--gold-bright);
+  }
+  @keyframes putar { to { transform: rotate(360deg); } }
+
+  /* — Pita berjalan — */
+  .ribbon {
+    overflow: hidden;
+    border-block: 1px solid rgba(201, 163, 106, 0.12);
+    padding: 0.9rem 0;
+  }
+  .ribbon-track {
+    display: flex;
+    width: max-content;
+    animation: geser 32s linear infinite;
     font-family: var(--font-mono);
     font-size: var(--step--1);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+  @keyframes geser { to { transform: translateX(-50%); } }
+
+  /* — Seksi umum — */
+  .wrap { padding: 6rem 2rem; max-width: 1100px; margin-inline: auto; }
+  .section-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: var(--step-2);
+    text-align: center;
+    margin: 0.4rem 0 3rem;
+  }
+  .demos .kicker, .features .kicker, .pricing .kicker, .contact .kicker {
+    display: block; text-align: center;
+  }
+
+  /* — Demo — */
+  .demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .demo-card {
+    border: 1px solid var(--hair);
+    background: rgba(18, 14, 30, 0.55);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--ivory);
+    display: flex; flex-direction: column; gap: 0.4rem;
+    transition: border-color 0.4s, transform 0.4s var(--ease-lux);
+  }
+  .demo-card:hover { border-color: var(--gold); transform: translateY(-4px); }
+  .demo-monogram {
+    font-family: var(--font-mono);
     letter-spacing: 0.4em;
     color: var(--gold);
+    margin-bottom: 0.8rem;
   }
-
-  .cue { margin-top: 4rem; }
-  .cue span {
-    display: block; width: 1px; height: 64px;
-    background: linear-gradient(to bottom, transparent, var(--gold-bright), transparent);
-    animation: napas 3s var(--ease-lux) infinite;
-  }
-  @keyframes napas {
-    0%, 100% { opacity: 0.25; transform: scaleY(0.7); }
-    50% { opacity: 1; transform: scaleY(1); }
-  }
-
-  blockquote {
+  .demo-card h3 {
     font-family: var(--font-display);
-    font-style: italic; font-weight: 300;
-    font-size: var(--step-3); line-height: 1.3;
+    font-style: italic;
+    font-size: var(--step-1);
+  }
+  .demo-card p { color: var(--ivory-dim); font-size: var(--step--1); }
+  .demo-link {
+    margin-top: 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+  }
+  .demo-intro {
+    text-align: center;
+    color: var(--ivory-dim);
+    max-width: 52ch;
+    margin: -1.5rem auto 2.5rem;
+  }
+  .demo-grid--single { max-width: 420px; margin-inline: auto; }
+  /* — Fitur — */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2.5rem;
+  }
+  .feature { text-align: center; }
+  .feature-icon { font-size: 1.8rem; color: var(--gold); display: block; margin-bottom: 1rem; }
+  .feature h3 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    margin-bottom: 0.5rem;
+  }
+  .feature p { color: var(--ivory-dim); font-size: 0.95rem; }
+
+  /* — Harga — */
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  .price-card {
+    border: 1px solid var(--hair);
+    background: rgba(18, 14, 30, 0.55);
+    padding: 2.5rem 2rem;
+    position: relative;
+  }
+  .price-card h3 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+  }
+  .price {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    color: var(--gold);
+    margin: 0.4rem 0 1.5rem;
+  }
+  .price-card ul { list-style: none; color: var(--ivory-dim); }
+  .price-card li { margin-bottom: 0.55rem; }
+  .price-badge {
+    position: absolute;
+    top: -0.8rem; left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.4em 1em;
+  }
+  @media (min-width: 900px) {
+    .price-card--featured { border-color: var(--gold); transform: scale(1.05); }
   }
 
-  @media (min-width: 768px) {
-    .names { flex-direction: row; gap: 0.3em; }
+  /* — Kontak — */
+  .contact { text-align: center; }
+  .contact-text {
+    color: var(--ivory-dim);
+    max-width: 46ch;
+    margin: 0 auto 2rem;
+  }
+
+  .foot {
+    width: 100%;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 1.6rem 2rem;
+    border-top: 1px solid rgba(201, 163, 106, 0.12);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ivory-dim);
   }
 </style>

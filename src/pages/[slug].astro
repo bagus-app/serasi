@@ -1,0 +1,566 @@
+---
+import Base from "../layouts/Base.astro";
+import SkyCanvas from "../components/SkyCanvas.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const weddings = await getCollection("weddings");
+  return weddings.map((w) => ({
+    params: { slug: w.data.slug },
+    props: { wedding: w.data },
+  }));
+}
+
+const { wedding } = Astro.props;
+const data = wedding;
+
+const skyConfig = {
+  memories: data.memories,
+  monogram: data.couple.monogram,
+};
+
+// Helper kalender Google
+function makeCalLink(ev: { name: string; start: string; end: string }): string {
+  const fmt = (iso: string) =>
+    new Date(iso).toISOString().replace(/[-:]|\.\d{3}/g, "");
+  return (
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${encodeURIComponent(`${ev.name} ${data.couple.nick[0]} & ${data.couple.nick[1]}`)}` +
+    `&dates=${fmt(ev.start)}/${fmt(ev.end)}` +
+    `&location=${encodeURIComponent(`${data.venue.name}, ${data.venue.address}`)}` +
+    `&details=${encodeURIComponent("Menuju satu langit yang sama.")}`
+  );
+}
+
+const waNumber = data.contact.whatsapp;
+const waHadir =
+  `https://wa.me/${waNumber}?text=` +
+  encodeURIComponent(
+    `Halo ${data.couple.nick[0]} & ${data.couple.nick[1]} ✦ Aku konfirmasi HADIR di hari bahagia kalian.`
+  );
+const waDoa =
+  `https://wa.me/${waNumber}?text=` +
+  encodeURIComponent(
+    `Halo ${data.couple.nick[0]} & ${data.couple.nick[1]} ✦ Aku belum bisa hadir, tapi doaku ikut bersinar.`
+  );
+---
+
+<Base title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`}>
+  <SkyCanvas config={skyConfig} />
+  <div class="vignette" aria-hidden="true"></div>
+
+  <main id="journey">
+    <!-- Adegan ① : Pembuka dengan personalisasi ?to= -->
+    <section class="scene">
+      <p class="kicker">Undangan Pernikahan</p>
+      <p class="guest-name" id="guest-name"></p>
+      <h1 class="names">
+        <span class="name">{data.couple.nick[0]}</span>
+        <span class="amp">&amp;</span>
+        <span class="name">{data.couple.nick[1]}</span>
+      </h1>
+      <p class="tagline">{data.tagline}</p>
+      <p class="date">{data.date.display} — {data.venue.address.split(",").pop()?.trim()}</p>
+      <div class="cue" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- Adegan ② : Rasi Kenangan -->
+    {
+      data.memories.map((mem, i) => (
+        <section class={`memory memory--${i % 2 === 0 ? "r" : "l"}`}>
+          <div class="memory-text rv">
+            <p class="kicker">Kenangan {String(i + 1).padStart(2, "0")} · {mem.label} · {mem.year}</p>
+            <h2><span class="mask"><span>{mem.title}</span></span></h2>
+            <p>{mem.text}</p>
+          </div>
+        </section>
+      ))
+    }
+
+    <!-- Adegan ③ : Cakrawala Acara -->
+    <section class="acara" id="acara">
+      <p class="kicker rv">Akad &amp; Resepsi</p>
+      <div class="dial rv" aria-hidden="true">
+        <div class="dial-ticks"></div>
+        <div class="dial-core">
+          <span class="dial-mono">{data.couple.monogram}</span>
+          <span class="dial-day">{data.date.day}</span>
+        </div>
+      </div>
+      <h2 class="acara-date rv">{data.date.display}</h2>
+
+      <div class="cards">
+        {
+          data.events.map((ev) => (
+            <article class="card rv">
+              <span class="card-star" aria-hidden="true">✦</span>
+              <h3>{ev.name}</h3>
+              <p class="card-time">{ev.time}</p>
+              <p class="card-venue">{data.venue.name}</p>
+              <p class="card-addr">{data.venue.address}</p>
+              <div class="card-actions">
+                <a class="btn btn--solid" href={data.venue.maps} target="_blank" rel="noopener">Lihat Peta</a>
+                <a class="btn" href={makeCalLink(ev)} target="_blank" rel="noopener">Simpan Tanggal</a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+
+      <p class="countline" id="hitung-mundur">menghitung bintang…</p>
+    </section>
+
+    <!-- Adegan ④ : Bintang Doa -->
+    <section class="doa" id="doa">
+      <p class="kicker rv">Bintang Doa</p>
+      <h2 class="doa-title rv"><span class="mask"><span>Titipkan Cahayamu</span></span></h2>
+      <p class="doa-lede rv">Setiap doa yang lahir dari layar ini akan menjadi bintang yang menetap di langit kami — selamanya.</p>
+
+      <form id="doa-form" class="doa-form rv">
+        <input id="doa-nama" type="text" placeholder="Namamu (boleh dikosongkan)" autocomplete="name" maxlength="40" />
+        <textarea id="doa-pesan" placeholder="Tulis doamu untuk kedua mempelai…" required maxlength="220" rows="3"></textarea>
+        <button class="btn btn--solid" type="submit">Lahirkan Bintang ✦</button>
+      </form>
+
+      <p class="doa-count" id="doa-count">0 bintang doa lahir dari layar ini</p>
+      <ul class="doa-list" id="doa-list"></ul>
+    </section>
+
+    <!-- Adegan ⑤ : Penutup -->
+    <section class="penutup">
+      <blockquote class="rv">"Langit yang sama,<br />doa yang sama."</blockquote>
+      <div class="rsvp rv">
+        <p class="kicker">Konfirmasi Kehadiran</p>
+        <div class="rsvp-actions">
+          <a class="seal" href={waHadir} target="_blank" rel="noopener">Hadir ✦</a>
+          <a class="btn" href={waDoa} target="_blank" rel="noopener">Doa dari Jauh</a>
+        </div>
+        <button class="btn" id="bagikan" type="button">Bagikan Undangan</button>
+      </div>
+      <footer class="foot">
+        <span>{data.couple.monogram} · MMXXVI</span>
+        <span>dibangun di bawah langit yang sama</span>
+      </footer>
+    </section>
+  </main>
+</Base>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { initReveal } from "../scripts/reveal";
+  import { initCountdown } from "../scripts/countdown";
+  import { WishStore } from "../scripts/wishes";
+
+  gsap.registerPlugin(ScrollTrigger);
+  initReveal();
+  initCountdown();
+
+  // Ambil slug dari URL
+  const slug = window.location.pathname.split("/").pop() || "default";
+
+  /* — Personalisasi ?to= — */
+  const params = new URLSearchParams(window.location.search);
+  const guestName = params.get("to");
+  const guestEl = document.getElementById("guest-name");
+  if (guestName && guestEl) {
+    guestEl.textContent = `Kepada yang terhormat, ${decodeURIComponent(guestName)}`;
+    // Isi otomatis field nama di form doa
+    const namaInput = document.getElementById("doa-nama") as HTMLInputElement | null;
+    if (namaInput && !namaInput.value) {
+      namaInput.value = decodeURIComponent(guestName);
+    }
+  }
+
+  /* — Toast — */
+  let toastTimer: number | undefined;
+  function showToast(msg: string) {
+    let el = document.getElementById("toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "toast";
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => el!.classList.remove("show"), 2600);
+  }
+
+  /* — Scroll progress → sky — */
+  const journey = document.getElementById("journey");
+  if (journey) {
+    ScrollTrigger.create({
+      trigger: journey,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => {
+        window.dispatchEvent(new CustomEvent("sky:progress", { detail: self.progress }));
+      },
+    });
+  }
+
+  /* — Bintang Doa (namespaced per klien) — */
+  const store = new WishStore(slug);
+  const form = document.getElementById("doa-form") as HTMLFormElement | null;
+  const countEl = document.getElementById("doa-count");
+  const listEl = document.getElementById("doa-list");
+
+  function renderWishes() {
+    if (countEl) countEl.textContent = `${store.count()} bintang doa lahir dari layar ini`;
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    store.latest(3).forEach((w) => {
+      const li = document.createElement("li");
+      const q = document.createElement("p");
+      q.textContent = `"${w.pesan}"`;
+      const n = document.createElement("span");
+      n.textContent = w.nama ? `— ${w.nama}` : "— tanpa nama";
+      li.append(q, n);
+      listEl.appendChild(li);
+    });
+  }
+
+  // Restore bintang-bintang lama di langit
+  window.dispatchEvent(new CustomEvent("sky:restoreWish", { detail: store.count() }));
+  renderWishes();
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const pesan = (document.getElementById("doa-pesan") as HTMLTextAreaElement).value.trim();
+    if (!pesan) return;
+    const nama = (document.getElementById("doa-nama") as HTMLInputElement).value.trim();
+    store.add({ nama, pesan });
+    renderWishes();
+    form.reset();
+    showToast("Bintang doamu telah lahir ✦");
+    window.dispatchEvent(new CustomEvent("sky:spawnWish"));
+  });
+
+  /* — Bagikan — */
+  document.getElementById("bagikan")?.addEventListener("click", async () => {
+    const data = {
+      title: "Undangan Pernikahan",
+      text: "Dua bintang, satu langit. Kami menunggumu ✦",
+      url: location.href,
+    };
+    try {
+      if (navigator.share) await navigator.share(data);
+      else {
+        await navigator.clipboard.writeText(location.href);
+        showToast("Tautan tersalin ✦");
+      }
+    } catch {}
+  });
+</script>
+
+<style>
+  .vignette {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 115%, rgba(26, 19, 48, 0.9) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% -25%, rgba(23, 17, 40, 0.85) 0%, transparent 55%);
+  }
+
+  .guest-name {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+    max-width: 50ch;
+    text-align: center;
+  }
+
+  .scene {
+    min-height: 100svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 2rem;
+  }
+  .names {
+    font-family: var(--font-display);
+    font-weight: 300; font-style: italic;
+    font-size: var(--step-4); line-height: 1.05;
+    margin: 0.35em 0;
+    display: flex; flex-direction: column; align-items: center; gap: 0.05em;
+  }
+  .amp { font-size: 0.4em; font-style: normal; color: var(--gold); }
+  .tagline {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--ivory-dim);
+    max-width: 34ch;
+  }
+  .date {
+    margin-top: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.4em;
+    color: var(--gold);
+  }
+  .cue { margin-top: 4rem; }
+  .cue span {
+    display: block; width: 1px; height: 64px;
+    background: linear-gradient(to bottom, transparent, var(--gold-bright), transparent);
+    animation: napas 3s var(--ease-lux) infinite;
+  }
+  @keyframes napas {
+    0%, 100% { opacity: 0.25; transform: scaleY(0.7); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+  blockquote {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 300;
+    font-size: var(--step-3); line-height: 1.3;
+  }
+
+  .memory {
+    min-height: 170svh;
+    display: flex; align-items: center;
+    padding-inline: clamp(1.5rem, 8vw, 7rem);
+  }
+  .memory--r { justify-content: flex-start; }
+  .memory--l { justify-content: flex-end; }
+  .memory-text { max-width: 30rem; padding: 2.5rem; position: relative; }
+  .memory-text::before {
+    content: "";
+    position: absolute; inset: -18%;
+    background: radial-gradient(closest-side, rgba(13, 10, 20, 0.85), transparent);
+    z-index: -1; pointer-events: none;
+  }
+  .memory-text h2 {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 400;
+    font-size: var(--step-2); line-height: 1.2;
+    margin: 0.6rem 0 1rem;
+  }
+  .memory-text p:last-child { color: var(--ivory-dim); }
+
+  .acara {
+    min-height: 140svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 6rem 1.5rem;
+    gap: 0.5rem;
+  }
+  .dial {
+    position: relative;
+    width: min(58vw, 270px);
+    aspect-ratio: 1;
+    display: grid; place-items: center;
+    margin: 2rem 0;
+  }
+  .dial::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--hair);
+  }
+  .dial::after {
+    content: "";
+    position: absolute; inset: -28%;
+    background: radial-gradient(circle, rgba(201, 163, 106, 0.14), transparent 62%);
+    z-index: -1; pointer-events: none;
+  }
+  .dial-ticks {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: repeating-conic-gradient(
+      from 0deg,
+      rgba(236, 211, 161, 0.9) 0deg 0.6deg,
+      transparent 0.6deg 6deg
+    );
+    -webkit-mask: radial-gradient(closest-side, transparent 90%, #000 91%);
+    mask: radial-gradient(closest-side, transparent 90%, #000 91%);
+    animation: putar 90s linear infinite;
+  }
+  @keyframes putar { to { transform: rotate(360deg); } }
+  .dial-core { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+  .dial-mono {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.4em;
+    color: var(--gold);
+  }
+  .dial-day {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--ivory-dim);
+  }
+  .acara-date {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 400;
+    font-size: var(--step-3);
+    line-height: 1.1;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1.5rem;
+    width: min(100%, 720px);
+    margin-top: 3rem;
+  }
+  .card {
+    position: relative;
+    border: 1px solid var(--hair);
+    background: rgba(18, 14, 30, 0.55);
+    padding: 2.2rem 2rem;
+    text-align: left;
+  }
+  .card-star {
+    position: absolute; top: -0.7em; left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold);
+    background: var(--ink);
+    padding-inline: 0.6em;
+    font-size: 0.9rem;
+  }
+  .card h3 {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 500;
+    font-size: var(--step-1);
+  }
+  .card-time {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.25em;
+    color: var(--gold-bright);
+    margin: 0.6rem 0 1rem;
+  }
+  .card-venue { font-weight: 400; }
+  .card-addr { color: var(--ivory-dim); font-size: 0.92em; }
+  .card-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.6rem; }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--gold-bright);
+    border: 1px solid var(--hair);
+    padding: 0.75em 1.3em;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.4s var(--ease-lux), color 0.4s var(--ease-lux), border-color 0.4s;
+  }
+  .btn:hover { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .btn--solid { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .btn--solid:hover { background: transparent; color: var(--gold-bright); border-color: var(--hair); }
+
+  .countline {
+    margin-top: 3rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ivory-dim);
+  }
+
+  .doa {
+    min-height: 120svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 4rem 1.5rem;
+  }
+  .doa-title {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 400;
+    font-size: var(--step-3);
+    margin: 0.5rem 0 1rem;
+  }
+  .doa-lede { color: var(--ivory-dim); max-width: 46ch; }
+  .doa-form {
+    margin-top: 2.5rem;
+    width: min(100%, 460px);
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .doa-form input, .doa-form textarea {
+    background: rgba(18, 14, 30, 0.6);
+    border: 1px solid var(--hair);
+    color: var(--ivory);
+    font-family: var(--font-body);
+    font-weight: 300; font-size: var(--step-0);
+    padding: 1em 1.1em;
+    resize: vertical;
+    transition: border-color 0.4s;
+  }
+  .doa-form input::placeholder, .doa-form textarea::placeholder { color: rgba(185, 175, 157, 0.55); }
+  .doa-form input:focus, .doa-form textarea:focus { outline: none; border-color: var(--gold); }
+  .doa-form .btn { align-self: center; }
+  .doa-count {
+    margin-top: 1.8rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .doa-list {
+    list-style: none;
+    margin-top: 2.2rem;
+    display: flex; flex-direction: column; gap: 1.2rem;
+    max-width: 34rem;
+  }
+  .doa-list p {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    line-height: 1.4;
+  }
+  .doa-list span {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ivory-dim);
+  }
+
+  .penutup {
+    min-height: 100svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem 0;
+  }
+  .penutup blockquote { margin-bottom: 3rem; }
+  .rsvp { display: flex; flex-direction: column; align-items: center; gap: 1.4rem; }
+  .rsvp-actions {
+    display: flex; align-items: center; gap: 1.6rem;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .seal {
+    display: inline-grid; place-items: center;
+    width: 130px; height: 130px; border-radius: 50%;
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    text-decoration: none;
+    background: radial-gradient(circle at 35% 30%, rgba(236, 211, 161, 0.18), rgba(201, 163, 106, 0.06) 70%);
+    box-shadow: 0 0 40px rgba(201, 163, 106, 0.18), inset 0 0 22px rgba(201, 163, 106, 0.12);
+    transition: transform 0.6s var(--ease-lux), box-shadow 0.6s var(--ease-lux);
+  }
+  .seal:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 60px rgba(201, 163, 106, 0.32), inset 0 0 30px rgba(201, 163, 106, 0.22);
+  }
+  .foot {
+    margin-top: 5rem; width: 100%;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 1.6rem 0.5rem;
+    border-top: 1px solid rgba(201, 163, 106, 0.12);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ivory-dim);
+  }
+
+  @media (min-width: 768px) {
+    .names { flex-direction: row; gap: 0.3em; }
+  }
+</style>

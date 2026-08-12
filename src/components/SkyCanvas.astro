@@ -1,12 +1,25 @@
 ---
-// Lapisan langit 3D — paling belakang, murni dekoratif
+import type { SkyConfig } from "../three/sky";
+
+interface Props {
+  config: SkyConfig;
+}
+const { config } = Astro.props;
 ---
-<canvas id="sky" aria-hidden="true"></canvas>
+
+<canvas
+  id="sky"
+  aria-hidden="true"
+  data-config={JSON.stringify(config)}
+></canvas>
 
 <script>
   import { initSky } from "../three/sky";
   const canvas = document.getElementById("sky");
-  if (canvas instanceof HTMLCanvasElement) initSky(canvas);
+  if (canvas instanceof HTMLCanvasElement) {
+    const cfg = JSON.parse(canvas.dataset.config!);
+    initSky(canvas, cfg);
+  }
 </script>
 
 <style>

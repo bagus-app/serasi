@@ -1,0 +1,77 @@
+{
+  "slug": "arka-as",
+  "couple": {
+    "nick": ["Arka", "as"],
+    "full": ["Arka Pradipta", "as Ayudia"],
+    "monogram": "A · L"
+  },
+  "tagline": "Dua bintang yang memutuskan berbagi satu langit.",
+  "date": {
+    "iso": "2026-06-20T08:00:00+07:00",
+    "display": "20 Juni 2026",
+    "day": "Sabtu"
+  },
+  "venue": {
+    "name": "The Amanuba",
+    "address": "Jl. Bukit Pakar Timur No. 35, Bandung",
+    "maps": "https://maps.google.com/?q=The+Amanuba+Bandung"
+  },
+  "events": [
+    {
+      "name": "Akad Nikah",
+      "time": "08.00 – 10.00 WIB",
+      "start": "2026-06-20T08:00:00+07:00",
+      "end": "2026-06-20T10:00:00+07:00"
+    },
+    {
+      "name": "Resepsi",
+      "time": "11.00 – 14.00 WIB",
+      "start": "2026-06-20T11:00:00+07:00",
+      "end": "2026-06-20T14:00:00+07:00"
+    }
+  ],
+  "memories": [
+    {
+      "shape": "gate",
+      "year": "2019",
+      "label": "Pertemuan",
+      "title": "Gerimis di Depan Toko Buku",
+      "text": "Hujan menahan kami di bawah satu payung yang lebih condong ke satu arah. Ada buku yang tak jadi dibeli, dan percakapan yang tak ingin kami sudahi."
+    },
+    {
+      "shape": "letter",
+      "year": "2021",
+      "label": "Janji",
+      "title": "Surat ke-62",
+      "text": "Bandung–Jakarta kami lipat menjadi amplop-amplop mingguan. Pada surat ke-62 tertulis kalimat yang mengubah segalanya: “Apa pun kotanya, kita pulang ke orang yang sama.”"
+    },
+    {
+      "shape": "ring",
+      "year": "2023",
+      "label": "Lamaran",
+      "title": "Di Bawah Rasi Crux",
+      "text": "Sebuah cincin, satu pertanyaan, dan jawaban yang diam-diam sudah kami ketahui sejak lama. Langit menjadi saksi pertama — sebelum kalian semua."
+    },
+    {
+      "shape": "gate",
+      "year": "2026",
+      "label": "Hari Ini",
+      "title": "Dua Bintang, Satu Langit",
+      "text": "Maka kami mengundang kalian ke titik temu: tempat dua garis edar resmi berbagi langit yang sama, mulai hari ini dan seterusnya."
+    }
+  ],
+  "gifts": [
+    {
+      "bank": "BCA",
+      "number": "1234 5678 90",
+      "holder": "Arka Pradipta"
+    }
+  ],
+  "contact": {
+    "whatsapp": "6281200000000"
+  },
+  "share": {
+    "title": "Undangan Arkana & asas",
+    "text": "Dua bintang, satu langit. Kami menunggumu ✦"
+  }
+}
