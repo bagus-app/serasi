@@ -48,21 +48,17 @@ Satu kalimat puitis di bawah nama. Maks ~60 karakter agar elegan.
 - start : ISO mulai  ← untuk tombol "Simpan Tanggal"
 - end   : ISO selesai
 
-### memories (1–6 kenangan) — INI YANG MENGGERAKKAN LANGIT
-Urutan = kronologi. Posisi rasi & jarak kamera diatur otomatis (zigzag).
-Field: year, label (kata pendek), title (judul), text (2–3 kalimat).
+### memories — shape
 
-**Varian shape yang tersedia:**
+PRESET (21): book, letter, ring, gate,
+heart, umbrella, coffee, music, plane, mountain, boat, key, moon,
+star5, infinity, tulip,
+crux, orion, cassiopeia, lyra, big-dipper.
 
-| shape    | makna terbaik untuk            | bentuk di langit |
-|----------|--------------------------------|------------------|
-| "book"   | pertemuan, kampus, sekolah     | buku terbuka     |
-| "letter" | LDR, janji, surat-menyurat     | amplop           |
-| "ring"   | lamaran / pertunangan          | cincin berlian   |
-| "gate"   | hari-H, rumah baru, awal       | gerbang lengkung |
-
-(Roadmap: "heart", "star", "key")
-Tips: pilih shape yang paling harfiah mewakili momen — tamu langsung paham.
+CUSTOM (paket Sultan) — gambar rasi sendiri:
+"shape": { "points": [[0,1.5],[−1,−1],[1,−1]], "edges": [[0,1],[1,2],[2,0]] }
+Aturan custom: koordinat disarankan dalam rentang [−2, 2];
+edges merujuk index points; edge yang tidak valid dilewati otomatis (aman).
 
 ### gifts (0–n rekening) — tampil di seksi "Tanda Kasih" (Step B)
 - bank   : "BCA" / "Mandiri" / "Dana"

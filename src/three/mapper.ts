@@ -1,14 +1,11 @@
 import * as THREE from "three";
 import {
-  SHAPE_LIBRARY,
-  buildConstellation,
-  buildMonogram,
-  type BuiltConstellation,
-  type ShapeId,
+  buildConstellation, buildMonogram, resolveShape,
+  type BuiltConstellation, type ShapeInput,
 } from "./shapes";
 
 export interface MemoryData {
-  shape: ShapeId;
+  shape: ShapeInput;
   year: string;
   label: string;
   title: string;
@@ -28,11 +25,11 @@ export function buildMemories(
   return memories.map((mem, i) => {
     const z = N === 1 ? (zStart + zEnd) / 2 : zStart + ((zEnd - zStart) * i) / (N - 1);
     const sideX = (i % 2 === 0 ? 1 : -1) * 3.2 * (small ? 0.45 : 1);
-    const shape = SHAPE_LIBRARY[mem.shape];
+    const shape = resolveShape(mem.shape); // string → preset | objek → custom
 
     return buildConstellation(
       {
-        id: mem.shape,
+        id: typeof mem.shape === "string" ? mem.shape : "custom",
         label: mem.label,
         pos: [sideX, 0.2, z],
         points: shape.points,

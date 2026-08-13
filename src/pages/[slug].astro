@@ -2,6 +2,9 @@
 import Base from "../layouts/Base.astro";
 import SkyCanvas from "../components/SkyCanvas.astro";
 import { getCollection } from "astro:content";
+import SceneGallery from "../components/scenes/SceneGallery.astro";
+import SceneVideo from "../components/scenes/SceneVideo.astro";
+import SceneDresscode from "../components/scenes/SceneDresscode.astro";
 
 export async function getStaticPaths() {
   const weddings = await getCollection("weddings");
@@ -78,7 +81,8 @@ const waDoa =
         </section>
       ))
     }
-
+    {data.gallery && <SceneGallery gallery={data.gallery} />}
+    {data.video && <SceneVideo video={data.video} />}
     <!-- Adegan ③ : Cakrawala Acara -->
     <section class="acara" id="acara">
       <p class="kicker rv">Akad &amp; Resepsi</p>
@@ -111,6 +115,7 @@ const waDoa =
 
       <p class="countline" id="hitung-mundur">menghitung bintang…</p>
     </section>
+    {data.dresscode && <SceneDresscode dresscode={data.dresscode} />}
     <!-- Tanda Kasih -->
     {
       data.gifts.length > 0 && (

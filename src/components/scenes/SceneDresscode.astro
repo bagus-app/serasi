@@ -1,0 +1,81 @@
+---
+interface Props {
+  dresscode: { text: string; note?: string; colors: { hex: string; name: string }[] };
+}
+const { dresscode } = Astro.props;
+---
+
+<section class="dresscode" id="dresscode">
+  <p class="kicker rv">Dress Code</p>
+  <h2 class="dc-title rv"><span class="mask"><span>Palet Malam Kita</span></span></h2>
+  <p class="dc-text rv">{dresscode.text}</p>
+
+  {
+    dresscode.colors.length > 0 && (
+      <div class="dc-swatches rv">
+        {
+          dresscode.colors.map((c) => (
+            <div class="dc-item">
+              <span class="swatch" style={`background:${c.hex}`}></span>
+              <span class="dc-name">{c.name}</span>
+            </div>
+          ))
+        }
+      </div>
+    )
+  }
+
+  {dresscode.note && <p class="dc-note rv">{dresscode.note}</p>}
+</section>
+
+<style>
+  .dresscode {
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 3rem 1.5rem 4.5rem;
+  }
+  .dc-title {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 400;
+    font-size: var(--step-2);
+    margin: 0.4rem 0 0.8rem;
+  }
+  .dc-text { color: var(--ivory-dim); max-width: 46ch; }
+
+  .dc-swatches {
+    display: flex; gap: 2.2rem;
+    margin-top: 2.4rem;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .dc-item { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
+  .swatch {
+    position: relative;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 1px solid var(--hair);
+    box-shadow:
+      0 0 0 6px rgba(13, 10, 20, 0.5),
+      0 0 24px color-mix(in srgb, var(--gold) 18%, transparent);
+  }
+  .swatch::after {
+    content: "";
+    position: absolute; inset: -7px;
+    border-radius: 50%;
+    border: 1px solid var(--hair);
+  }
+  .dc-name {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+  }
+  .dc-note {
+    margin-top: 2.2rem;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--ivory-dim);
+    max-width: 44ch;
+  }
+</style>
