@@ -13,10 +13,12 @@ export async function getStaticPaths() {
 
 const { wedding } = Astro.props;
 const data = wedding;
+const theme = data.theme ?? "champagne";
 
 const skyConfig = {
   memories: data.memories,
   monogram: data.couple.monogram,
+  theme,
 };
 
 // Helper kalender Google
@@ -45,7 +47,7 @@ const waDoa =
   );
 ---
 
-<Base title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`}>
+<Base title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`} theme={theme}>
   <SkyCanvas config={skyConfig} />
   <div class="vignette" aria-hidden="true"></div>
 
@@ -109,7 +111,28 @@ const waDoa =
 
       <p class="countline" id="hitung-mundur">menghitung bintang…</p>
     </section>
-
+    <!-- Tanda Kasih -->
+    {
+      data.gifts.length > 0 && (
+        <section class="gifts" id="gifts">
+          <p class="kicker rv">Tanda Kasih</p>
+          <h2 class="gifts-title rv"><span class="mask"><span>Ungkapan Hati</span></span></h2>
+          <p class="gifts-lede rv">Doa restumu adalah hadiah terindah. Bila ingin berbagi lebih, kami bersyukur.</p>
+          <div class="gift-grid">
+            {
+              data.gifts.map((g) => (
+                <article class="gift-card rv">
+                  <p class="gift-bank">{g.bank}</p>
+                  <p class="gift-number">{g.number}</p>
+                  <p class="gift-holder">a.n. {g.holder}</p>
+                  <button class="btn copy-btn" data-copy={g.number.replace(/\s/g, "")} type="button">Salin Nomor</button>
+                </article>
+              ))
+            }
+          </div>
+        </section>
+      )
+    }
     <!-- Adegan ④ : Bintang Doa -->
     <section class="doa" id="doa">
       <p class="kicker rv">Bintang Doa</p>
@@ -236,7 +259,18 @@ const waDoa =
     showToast("Bintang doamu telah lahir ✦");
     window.dispatchEvent(new CustomEvent("sky:spawnWish"));
   });
-
+  /* — Salin nomor rekening — */
+  document.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const raw = btn.dataset.copy ?? "";
+      try {
+        await navigator.clipboard.writeText(raw);
+        showToast("Nomor tersalin ✦");
+      } catch {
+        showToast("Tekan lama nomor untuk menyalin");
+      }
+    });
+  });
   /* — Bagikan — */
   document.getElementById("bagikan")?.addEventListener("click", async () => {
     const data = {
@@ -315,14 +349,19 @@ const waDoa =
     font-size: var(--step-3); line-height: 1.3;
   }
 
-  .memory {
-    min-height: 170svh;
+    .memory {
+    min-height: 130svh; /* turun dari 170svh */
     display: flex; align-items: center;
     padding-inline: clamp(1.5rem, 8vw, 7rem);
+    padding-block: 2rem; /* tambahan padding atas-bawah */
   }
   .memory--r { justify-content: flex-start; }
   .memory--l { justify-content: flex-end; }
-  .memory-text { max-width: 30rem; padding: 2.5rem; position: relative; }
+  .memory-text {
+    max-width: 30rem;
+    padding: 2rem; /* turun sedikit di HP */
+    position: relative;
+  }
   .memory-text::before {
     content: "";
     position: absolute; inset: -18%;
@@ -369,7 +408,7 @@ const waDoa =
     border-radius: 50%;
     background: repeating-conic-gradient(
       from 0deg,
-      rgba(236, 211, 161, 0.9) 0deg 0.6deg,
+      var(--gold-bright) 0deg 0.6deg,
       transparent 0.6deg 6deg
     );
     -webkit-mask: radial-gradient(closest-side, transparent 90%, #000 91%);
@@ -483,10 +522,12 @@ const waDoa =
     border: 1px solid var(--hair);
     color: var(--ivory);
     font-family: var(--font-body);
-    font-weight: 300; font-size: var(--step-0);
-    padding: 1em 1.1em;
+    font-weight: 300;
+    font-size: 1rem; /* lebih besar untuk HP */
+    padding: 1.1em 1.2em;
     resize: vertical;
     transition: border-color 0.4s;
+    min-height: 48px;
   }
   .doa-form input::placeholder, .doa-form textarea::placeholder { color: rgba(185, 175, 157, 0.55); }
   .doa-form input:focus, .doa-form textarea:focus { outline: none; border-color: var(--gold); }
@@ -542,12 +583,14 @@ const waDoa =
     letter-spacing: 0.2em; text-transform: uppercase;
     text-decoration: none;
     background: radial-gradient(circle at 35% 30%, rgba(236, 211, 161, 0.18), rgba(201, 163, 106, 0.06) 70%);
-    box-shadow: 0 0 40px rgba(201, 163, 106, 0.18), inset 0 0 22px rgba(201, 163, 106, 0.12);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--gold) 22%, transparent),
+      inset 0 0 22px color-mix(in srgb, var(--gold) 14%, transparent);
     transition: transform 0.6s var(--ease-lux), box-shadow 0.6s var(--ease-lux);
   }
   .seal:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 60px rgba(201, 163, 106, 0.32), inset 0 0 30px rgba(201, 163, 106, 0.22);
+    box-shadow: 0 0 60px color-mix(in srgb, var(--gold) 35%, transparent),
+      inset 0 0 30px color-mix(in srgb, var(--gold) 25%, transparent);
   }
   .foot {
     margin-top: 5rem; width: 100%;
@@ -563,4 +606,73 @@ const waDoa =
   @media (min-width: 768px) {
     .names { flex-direction: row; gap: 0.3em; }
   }
+
+    /* — Mobile overrides — */
+  @media (max-width: 768px) {
+    .scene, .acara, .doa, .penutup {
+      padding-inline: 1.5rem;
+    }
+    .cards { gap: 1rem; }
+    .card { padding: 1.8rem 1.5rem; }
+    .card-actions { flex-direction: column; }
+    .card-actions .btn { width: 100%; }
+    .doa-form { gap: 0.8rem; }
+    .rsvp-actions {
+      flex-direction: column;
+      width: 100%;
+      max-width: 320px;
+    }
+    .rsvp-actions .btn, .rsvp-actions .seal { width: 100%; }
+    .foot {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.5rem;
+    }
+    /* Nama tamu lebih besar di HP */
+    .guest-name {
+      font-size: var(--step-1);
+      padding-inline: 1rem;
+    }
+  }
+  /* — Tanda Kasih — */
+  .gifts {
+    min-height: 90svh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem;
+  }
+  .gifts-title {
+    font-family: var(--font-display);
+    font-style: italic; font-weight: 400;
+    font-size: var(--step-3);
+    margin: 0.5rem 0 1rem;
+  }
+  .gifts-lede { color: var(--ivory-dim); max-width: 44ch; }
+  .gift-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.2rem;
+    width: min(100%, 640px);
+    margin-top: 2.5rem;
+  }
+  .gift-card {
+    border: 1px solid var(--hair);
+    background: rgba(18, 14, 30, 0.55);
+    padding: 2rem 1.5rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .gift-bank {
+    font-family: var(--font-mono);
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold);
+    font-size: var(--step--1);
+  }
+  .gift-number {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    letter-spacing: 0.08em;
+  }
+  .gift-holder { color: var(--ivory-dim); font-size: 0.92em; margin-bottom: 1rem; }
 </style>

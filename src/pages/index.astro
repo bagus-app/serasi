@@ -197,7 +197,14 @@ const demo = weddings[0];
     max-width: 44ch;
     margin-bottom: 2.4rem;
   }
-  .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+  }
 
   /* Cincin orbit berputar pelan di belakang judul */
   .orbit {
@@ -375,5 +382,27 @@ const demo = weddings[0];
     letter-spacing: 0.25em;
     text-transform: uppercase;
     color: var(--ivory-dim);
+  }
+
+    /* — Mobile overrides — */
+  @media (max-width: 768px) {
+    .hero { padding-inline: 1.5rem; }
+    .hero-cta {
+      flex-direction: column;
+    }
+    .hero-cta .btn { width: 100%; }
+    .wrap { padding: 4rem 1.5rem; }
+    .demo-grid { gap: 1rem; }
+    .feature-grid { gap: 1.8rem; }
+    .price-grid { gap: 1rem; }
+    .price-card--featured {
+      transform: none !important; /* jangan scale di HP */
+    }
+    .foot {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.5rem;
+    }
   }
 </style>

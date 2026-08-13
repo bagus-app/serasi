@@ -15,14 +15,11 @@ export interface MemoryData {
   text: string;
 }
 
-/**
- * Menyusun N memori menjadi rasi yang berbaris zigzag
- * di sepanjang jalur kamera (z = -8 sampai -62).
- */
 export function buildMemories(
   memories: MemoryData[],
   glow: THREE.Texture,
-  small: boolean
+  small: boolean,
+  lineColor = 0xd9b87c
 ): BuiltConstellation[] {
   const N = memories.length;
   const zStart = -8;
@@ -42,7 +39,8 @@ export function buildMemories(
         edges: shape.edges,
         scale: (small ? 0.8 : 1) * 1.5,
       },
-      glow
+      glow,
+      lineColor
     );
   });
 }

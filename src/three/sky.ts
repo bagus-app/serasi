@@ -6,9 +6,22 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import gsap from "gsap";
 import { buildMemories, buildMonogram, type MemoryData } from "./mapper";
 
+export type ThemeName = "champagne" | "rose" | "sage" | "aurora";
+
+export const THEME_3D: Record<
+  ThemeName,
+  { line: number; horizon: number; gold: [number, number, number]; rose: [number, number, number] }
+> = {
+  champagne: { line: 0xd9b87c, horizon: 0xe8c894, gold: [0.925, 0.827, 0.631], rose: [0.851, 0.635, 0.608] },
+  rose:      { line: 0xe0b0a8, horizon: 0xf0c8c0, gold: [0.94, 0.8, 0.76],    rose: [0.95, 0.85, 0.82] },
+  sage:      { line: 0xb8c8b0, horizon: 0xc8dcc0, gold: [0.72, 0.8, 0.68],    rose: [0.82, 0.88, 0.79] },
+  aurora:    { line: 0xa8b4dd, horizon: 0xbcc8f0, gold: [0.66, 0.72, 0.87],   rose: [0.76, 0.83, 0.93] },
+};
+
 export interface SkyConfig {
   memories: MemoryData[];
   monogram: string;
+  theme?: ThemeName;
 }
 
 export interface SkyHandle {
@@ -26,6 +39,7 @@ const smooth = (a: number, b: number, x: number) => {
 export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const small = matchMedia("(max-width: 768px)").matches;
+  const theme3d = THEME_3D[config.theme ?? "champagne"];
 
   /* ============ PANGGUNG ============ */
   const renderer = new THREE.WebGLRenderer({
@@ -34,7 +48,7 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
     powerPreference: "high-performance",
   });
   renderer.setClearColor(0x0d0a14, 1);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1.25 : 2));
   renderer.setSize(innerWidth, innerHeight);
 
   const scene = new THREE.Scene();
@@ -68,6 +82,8 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
     uniforms: {
       uTime: { value: 0 },
       uPixelRatio: { value: renderer.getPixelRatio() },
+      uGold: { value: new THREE.Vector3(...theme3d.gold) },
+      uRose: { value: new THREE.Vector3(...theme3d.rose) },
     },
     vertexShader: `
       uniform float uPixelRatio;
@@ -82,14 +98,16 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
       }`,
     fragmentShader: `
       uniform float uTime;
+      uniform vec3 uGold;
+      uniform vec3 uRose;
       varying float vPhase; varying float vTint; varying float vFade;
       void main() {
         float d = distance(gl_PointCoord, vec2(0.5));
         float a = smoothstep(0.5, 0.05, d);
         float tw = 0.72 + 0.28 * sin(uTime * 1.6 + vPhase);
         vec3 ivory = vec3(0.953, 0.918, 0.847);
-        vec3 gold  = vec3(0.925, 0.827, 0.631);
-        vec3 rose  = vec3(0.851, 0.635, 0.608);
+        vec3 gold  = uGold;
+        vec3 rose  = uRose;
         vec3 col = mix(ivory, vTint < 0.5 ? gold : rose, step(0.75, vTint) * 0.9);
         gl_FragColor = vec4(col, a * tw * vFade * 0.9);
       }`,
@@ -139,7 +157,7 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
   }
 
   /* ============ RASI DARI CONFIG ============ */
-  const cons = buildMemories(config.memories, glow, small);
+  const cons = buildMemories(config.memories, glow, small, theme3d.line);
   cons.forEach((c) => scene.add(c.group));
 
   /* ============ MONOGRAM DARI CONFIG ============ */
@@ -234,7 +252,7 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       opacity: 0.4,
-      color: 0xe8c894,
+      color: theme3d.horizon,
     })
   );
   horizon.position.set(0, -7, -96);

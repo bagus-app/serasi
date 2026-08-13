@@ -12,6 +12,7 @@ body {
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent; /* hilangkan highlight biru di iOS */
 }
 
 ::selection { background: var(--gold); color: var(--ink); }
@@ -25,6 +26,7 @@ body {
 
 :focus-visible { outline: 1px solid var(--gold-bright); outline-offset: 3px; }
 
+/* — Kicker — */
 .kicker {
   font-family: var(--font-mono);
   font-size: var(--step--1);
@@ -41,7 +43,7 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* — Tombol bersama (dipakai semua halaman) — */
+/* — Tombol bersama (tap-friendly di HP) — */
 .btn {
   font-family: var(--font-mono);
   font-size: var(--step--1);
@@ -50,12 +52,19 @@ body {
   text-decoration: none;
   color: var(--gold-bright);
   border: 1px solid var(--hair);
-  padding: 0.75em 1.3em;
+  padding: 1em 1.5em; /* padding lebih besar untuk HP */
+  min-height: 48px; /* tap target WCAG */
+  min-width: 48px;
   background: transparent;
   cursor: pointer;
   transition: background 0.4s var(--ease-lux), color 0.4s var(--ease-lux), border-color 0.4s;
+  touch-action: manipulation; /* hilangkan 300ms delay di iOS */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn:hover { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.btn:active { transform: scale(0.97); /* feedback sentuh */ }
 .btn--solid { background: var(--gold); color: var(--ink); border-color: var(--gold); }
 .btn--solid:hover { background: transparent; color: var(--gold-bright); border-color: var(--hair); }
 
@@ -71,7 +80,7 @@ body {
   50% { opacity: 1; transform: scaleY(1); }
 }
 
-/* — Langit statis (untuk halaman tanpa 3D, mis. etalase) — */
+/* — Langit statis — */
 .stars {
   position: fixed; inset: 0; z-index: -2; pointer-events: none;
   background:
@@ -123,13 +132,47 @@ body {
   padding: 0.9em 1.6em;
   z-index: 120;
   transition: opacity 0.5s var(--ease-lux), transform 0.5s var(--ease-lux);
+  max-width: 90vw; /* jangan overflow di HP */
+  text-align: center;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    animation-duration: 0.001s !important;
-    transition-duration: 0.001s !important;
+/* ============ MOBILE-FIRST ENHANCEMENTS ============ */
+
+@media (max-width: 768px) {
+  /* Font body lebih besar untuk senior */
+  :root {
+    --step-0: clamp(1.05rem, 1rem + 0.25vw, 1.125rem); /* 16.8–18px */
   }
+
+  /* Spacing lebih "napas" */
+  section { padding-block: 4rem; }
+
+  /* Form input yang ramah sentuh */
+  input, textarea, select {
+    font-size: 16px !important; /* cegah auto-zoom iOS */
+    min-height: 48px;
+    padding: 0.9em 1em !important;
+  }
+
+  /* Toast lebih rendah di HP (hindari home indicator) */
+  #toast { bottom: 5rem; }
+
+  /* Tombol full-width di HP kalau teks panjang */
+  .btn { width: 100%; }
+  .card-actions .btn, .hero-cta .btn, .rsvp-actions .btn { width: 100%; }
+}
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001s !important;
+      transition-duration: 0.001s !important;
+    }
+
+  /* — Preset tema: langit tetap malam, aksen bergeser — */
+  .theme-rose   { --gold: #d29a91; --gold-bright: #f2cfc7; --hair: rgba(210, 154, 145, 0.25); }
+  .theme-sage   { --gold: #a8b8a0; --gold-bright: #d3e2cb; --hair: rgba(168, 184, 160, 0.25); }
+  .theme-aurora { --gold: #8f9ec9; --gold-bright: #c9d4f2; --hair: rgba(143, 158, 201, 0.25); }
 }

@@ -11,23 +11,10 @@ const weddings = defineCollection({
       monogram: z.string(),
     }),
     tagline: z.string(),
-    date: z.object({
-      iso: z.string(),
-      display: z.string(),
-      day: z.string(),
-    }),
-    venue: z.object({
-      name: z.string(),
-      address: z.string(),
-      maps: z.string().url(),
-    }),
+    date: z.object({ iso: z.string(), display: z.string(), day: z.string() }),
+    venue: z.object({ name: z.string(), address: z.string(), maps: z.string().url() }),
     events: z.array(
-      z.object({
-        name: z.string(),
-        time: z.string(),
-        start: z.string(),
-        end: z.string(),
-      })
+      z.object({ name: z.string(), time: z.string(), start: z.string(), end: z.string() })
     ).min(1),
     memories: z.array(
       z.object({
@@ -39,17 +26,11 @@ const weddings = defineCollection({
       })
     ).min(1).max(6),
     gifts: z.array(
-      z.object({
-        bank: z.string(),
-        number: z.string(),
-        holder: z.string(),
-      })
+      z.object({ bank: z.string(), number: z.string(), holder: z.string() })
     ).default([]),
     contact: z.object({ whatsapp: z.string() }),
-    share: z.object({
-      title: z.string(),
-      text: z.string(),
-    }).optional(),
+    share: z.object({ title: z.string(), text: z.string() }).optional(),
+    theme: z.enum(["champagne", "rose", "sage", "aurora"]).optional(),
   }),
 });
 

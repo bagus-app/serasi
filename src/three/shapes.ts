@@ -18,7 +18,7 @@ export interface BuiltConstellation {
   verts: number;
 }
 
-/* ============ PUSTAKA BENTUK (koordinat lokal, belum di-scale) ============ */
+/* ============ PUSTAKA BENTUK ============ */
 
 const bookPts: [number, number][] = [
   [-2, 0.8], [0, 0.2], [2, 0.8], [2, -0.8], [0, -1.4], [-2, -0.8],
@@ -69,9 +69,13 @@ export const SHAPE_LIBRARY = {
 
 export type ShapeId = keyof typeof SHAPE_LIBRARY;
 
-/* ============ BUILDER RASI (netral) ============ */
+/* ============ BUILDER RASI ============ */
 
-export function buildConstellation(def: ConstellationDef, glow: THREE.Texture): BuiltConstellation {
+export function buildConstellation(
+  def: ConstellationDef,
+  glow: THREE.Texture,
+  lineColor = 0xd9b87c
+): BuiltConstellation {
   const group = new THREE.Group();
   group.position.set(...def.pos);
   group.scale.setScalar(def.scale);
@@ -86,7 +90,7 @@ export function buildConstellation(def: ConstellationDef, glow: THREE.Texture): 
   const lineGeo = new THREE.BufferGeometry();
   lineGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   const lineMat = new THREE.LineBasicMaterial({
-    color: 0xd9b87c,
+    color: lineColor,
     transparent: true,
     opacity: 0,
     blending: THREE.AdditiveBlending,
@@ -134,8 +138,6 @@ function sampleStroke(pts: [number, number][], step = 0.14): [number, number][] 
   return out;
 }
 
-/** Membaca inisial monogram (contoh "A · L") menjadi titik-titik bintang.
- *  V1 mendukung huruf A dan L — cukup untuk monogram dua huruf. */
 export function buildMonogram(monogram: string, glow: THREE.Texture): {
   group: THREE.Group;
   mat: THREE.PointsMaterial;
@@ -150,7 +152,7 @@ export function buildMonogram(monogram: string, glow: THREE.Texture): {
 
   const getShape = (ch: string): [number, number][][] => {
     if (ch === "L") return [L];
-    return [A, Abar]; // default = A
+    return [A, Abar];
   };
 
   const pts: [number, number][] = [

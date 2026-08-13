@@ -13,11 +13,12 @@ import "../styles/base.css";
 interface Props {
   title?: string;
   description?: string;
+  theme?: string;
 }
 const {
   title = "Arka & Laras — Langit yang Sama",
-  description =
-    "Undangan pernikahan Arka & Laras — 20 Juni 2026. Satu langit, dua bintang, dan doa yang tak terhitung.",
+  description = "Undangan pernikahan Arka & Laras — 20 Juni 2026. Satu langit, dua bintang, dan doa yang tak terhitung.",
+  theme = "champagne",
 } = Astro.props;
 ---
 
@@ -30,7 +31,7 @@ const {
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
-  <body>
+  <body class={theme !== "champagne" ? `theme-${theme}` : ""}>
     <slot />
     <div class="grain" aria-hidden="true"></div>
   </body>
