@@ -1,4 +1,4 @@
-# 🌌 Langit yang Sama — Undangan Pernikahan Digital Premium
+# 🌌 Serasi — Undangan Pernikahan Digital Premium
 
 Satu codebase, banyak pernikahan. Setiap klien = satu file JSON = satu link custom.
 
