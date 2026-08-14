@@ -14,11 +14,15 @@ interface Props {
   title?: string;
   description?: string;
   theme?: string;
+  ogUrl?: string;
+  ogImage?: string;
 }
 const {
-  title = "Arka & Laras — Langit yang Sama",
+  title = "Arka & Laras — Serasi",
   description = "Undangan pernikahan Arka & Laras — 20 Juni 2026. Satu langit, dua bintang, dan doa yang tak terhitung.",
   theme = "champagne",
+  ogUrl,
+  ogImage,
 } = Astro.props;
 ---
 
@@ -30,6 +34,19 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph / preview WA & IG -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Serasi" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {ogUrl && <meta property="og:url" content={ogUrl} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
     <noscript>
       <style>
         .rv { opacity: 1; transform: none; }

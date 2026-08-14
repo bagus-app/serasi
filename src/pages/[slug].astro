@@ -25,7 +25,17 @@ const skyConfig = {
   monogram: data.couple.monogram,
   theme,
 };
-
+const year = new Date(data.date.iso).getFullYear();
+const toRoman = (n: number) => {
+  const map: [number, string][] = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"],
+    [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let r = "";
+  for (const [v, s] of map) while (n >= v) { r += s; n -= v; }
+  return r;
+};
+const ogImage = new URL(`/og/${data.slug}.png`, Astro.url).href;
 // Helper kalender Google
 function makeCalLink(ev: { name: string; start: string; end: string }): string {
   const fmt = (iso: string) =>
@@ -52,7 +62,13 @@ const waDoa =
   );
 ---
 
-<Base title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`} description={description} theme={theme}>
+<Base
+  title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`}
+  description={description}
+  theme={theme}
+  ogUrl={Astro.url.href}
+  ogImage={ogImage}
+>
   <SkyCanvas config={skyConfig} />
   <div class="vignette" aria-hidden="true"></div>
 
@@ -115,7 +131,7 @@ const waDoa =
         }
       </div>
 
-      <p class="countline" id="hitung-mundur">menghitung bintang…</p>
+      <p class="countline" id="hitung-mundur" data-iso={data.date.iso}>menghitung bintang…</p>
     </section>
     {data.dresscode && <SceneDresscode dresscode={data.dresscode} />}
     <!-- Tanda Kasih -->
@@ -176,11 +192,26 @@ const waDoa =
         </button>
       </div>
       <footer class="foot">
-        <span>{data.couple.monogram} · MMXXVI</span>
+        <span>{data.couple.monogram} · {toRoman(year)}</span>
         <span>dibangun di bawah langit yang sama</span>
       </footer>
     </section>
   </main>
+  <script type="application/ld+json">
+  {
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: `Pernikahan ${data.couple.nick[0]} & ${data.couple.nick[1]}`,
+      startDate: data.events[0].start,
+      endDate: data.events[data.events.length - 1].end,
+      description,
+      url: Astro.url.href,
+      image: ogImage,
+      location: { "@type": "Place", name: data.venue.name, address: data.venue.address },
+    })
+  }
+  </script>
 </Base>
 
 <script>
