@@ -40,6 +40,8 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const small = matchMedia("(max-width: 768px)").matches;
   const theme3d = THEME_3D[config.theme ?? "champagne"];
+  const colGold = new THREE.Color().fromArray(theme3d.gold);
+  const colRose = new THREE.Color().fromArray(theme3d.rose);
 
   /* ============ PANGGUNG ============ */
   const renderer = new THREE.WebGLRenderer({
@@ -162,6 +164,7 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
 
   /* ============ MONOGRAM DARI CONFIG ============ */
   const mono = buildMonogram(config.monogram, glow);
+  mono.mat.color.copy(colGold);
   scene.add(mono.group);
 
   /* ============ BINTANG DOA ============ */
@@ -172,7 +175,7 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
         transparent: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        color: Math.random() < 0.5 ? 0xf3d9c4 : 0xecd3a1,
+        color: Math.random() < 0.5 ? colRose : colGold,
         opacity: nearCamera ? 0 : 0.85,
       })
     );
@@ -285,6 +288,20 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
   const clock = new THREE.Clock();
   let t = 0, raf = 0, running = false, firstFrame = true;
   let targetP = 0, p = 0;
+  let perfFrames = 0;
+  let perfTime = 0;
+  let degraded = false;
+
+  // HP lemah terdeteksi otomatis → kualitas turun agar tetap mulus
+  function degrade() {
+    degraded = true;
+    renderer.setPixelRatio(1);
+    starMat.uniforms.uPixelRatio.value = 1;
+    composer.setPixelRatio(1);
+    renderer.setSize(innerWidth, innerHeight);
+    composer.setSize(innerWidth, innerHeight);
+    geo.setDrawRange(0, Math.floor(COUNT / 2));
+  }
 
   function frame() {
     if (!running) return;
@@ -292,6 +309,12 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
     const dt = Math.min(clock.getDelta(), 0.05);
     t += dt;
     starMat.uniforms.uTime.value = t;
+    // Sample 120 frame pertama; bila < 28 fps, turunkan kualitas
+    if (!degraded && perfFrames < 120) {
+      perfFrames++;
+      perfTime += dt;
+      if (perfFrames === 120 && perfTime > 0 && 120 / perfTime < 28) degrade();
+    }
 
     p += (targetP - p) * 0.06;
     camera.position.copy(camPath.getPoint(p));

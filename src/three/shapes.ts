@@ -99,7 +99,6 @@ export function buildConstellation(
 
   const positions: number[] = [];
   for (const [a, b] of def.edges) {
-    // Guard: lewati edge yang menunjuk titik di luar rentang (aman utk custom)
     if (a < 0 || b < 0 || a >= def.points.length || b >= def.points.length) continue;
     positions.push(
       def.points[a][0], def.points[a][1], 0,
@@ -128,7 +127,7 @@ export function buildConstellation(
   return { def, group, line, lineMat, starsMat, verts: positions.length / 3 };
 }
 
-/* ============ MONOGRAM PENUTUP ============ */
+/* ============ MONOGRAM PENUTUP (A–Z) ============ */
 
 function sampleStroke(pts: [number, number][], step = 0.14): [number, number][] {
   const out: [number, number][] = [];
@@ -148,28 +147,79 @@ function sampleStroke(pts: [number, number][], step = 0.14): [number, number][] 
   return out;
 }
 
+/* Font garis 3×5 — setiap huruf = kumpulan goresan bintang */
+const FONT: Record<string, number[][][]> = {
+  A: [[[0,0],[1,4],[2,0]],[[0.35,1.3],[1.65,1.3]]],
+  B: [[[0,0],[0,4],[1.4,4],[2,3.2],[2,2.8],[1.4,2],[0,2]],[[1.4,2],[2,1.2],[2,0.8],[1.4,0],[0,0]]],
+  C: [[[2,3.2],[1.2,4],[0.8,4],[0,3.2],[0,0.8],[0.8,0],[1.2,0],[2,0.8]]],
+  D: [[[0,0],[0,4],[1.2,4],[2,3],[2,1],[1.2,0],[0,0]]],
+  E: [[[2,4],[0,4],[0,0],[2,0]],[[0,2],[1.4,2]]],
+  F: [[[2,4],[0,4],[0,0]],[[0,2],[1.4,2]]],
+  G: [[[2,3.2],[1.2,4],[0.8,4],[0,3.2],[0,0.8],[0.8,0],[1.2,0],[2,0.8],[2,2],[1.2,2]]],
+  H: [[[0,0],[0,4]],[[2,0],[2,4]],[[0,2],[2,2]]],
+  I: [[[1,0],[1,4]],[[0.4,4],[1.6,4]],[[0.4,0],[1.6,0]]],
+  J: [[[2,4],[2,0.8],[1.2,0],[0.6,0],[0,0.8]]],
+  K: [[[0,0],[0,4]],[[2,4],[0,1.6]],[[0.7,2.2],[2,0]]],
+  L: [[[0,4],[0,0],[2,0]]],
+  M: [[[0,0],[0,4],[1,1.6],[2,4],[2,0]]],
+  N: [[[0,0],[0,4],[2,0],[2,4]]],
+  O: [[[0.8,4],[0,3.2],[0,0.8],[0.8,0],[1.2,0],[2,0.8],[2,3.2],[1.2,4],[0.8,4]]],
+  P: [[[0,0],[0,4],[1.5,4],[2,3.2],[2,2.8],[1.5,2],[0,2]]],
+  Q: [[[0.8,4],[0,3.2],[0,0.8],[0.8,0],[1.2,0],[2,0.8],[2,3.2],[1.2,4],[0.8,4]],[[1.3,0.7],[2.2,-0.2]]],
+  R: [[[0,0],[0,4],[1.5,4],[2,3.2],[2,2.8],[1.5,2],[0,2]],[[0.8,2],[2,0]]],
+  S: [[[2,3.4],[1.4,4],[0.6,4],[0,3.4],[0,2.6],[0.6,2],[1.4,2],[2,1.4],[2,0.6],[1.4,0],[0.6,0],[0,0.6]]],
+  T: [[[1,0],[1,4]],[[0,4],[2,4]]],
+  U: [[[0,4],[0,0.8],[0.8,0],[1.2,0],[2,0.8],[2,4]]],
+  V: [[[0,4],[1,0],[2,4]]],
+  W: [[[0,4],[0.5,0],[1,2.4],[1.5,0],[2,4]]],
+  X: [[[0,0],[2,4]],[[2,0],[0,4]]],
+  Y: [[[0,4],[1,2],[2,4]],[[1,2],[1,0]]],
+  Z: [[[0,4],[2,4],[0,0],[2,0]]],
+};
+
 export function buildMonogram(monogram: string, glow: THREE.Texture): {
-  group: THREE.Group; mat: THREE.PointsMaterial;
+  group: THREE.Group;
+  mat: THREE.PointsMaterial;
 } {
-  const A: [number, number][] = [[-1, -1], [0, 1], [1, -1]];
-  const Abar: [number, number][] = [[-0.42, -0.1], [0.42, -0.1]];
-  const L: [number, number][] = [[0, 1], [0, -1], [1.05, -1]];
-  const chars = monogram.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 2);
-  const c1 = chars[0] ?? "A";
-  const c2 = chars[1] ?? "L";
-  const getShape = (ch: string): [number, number][][] => (ch === "L" ? [L] : [A, Abar]);
-  const pts: [number, number][] = [
-    ...getShape(c1).flatMap((s) => sampleStroke(s)).map(([x, y]) => [x - 2.6, y] as [number, number]),
-    [0, -0.6],
-    ...getShape(c2).flatMap((s) => sampleStroke(s)).map(([x, y]) => [x + 1.9, y] as [number, number]),
-  ];
+  const letters = (monogram.replace(/[^A-Za-z]/g, "").toUpperCase() || "AL").slice(0, 2).split("");
+  const c1 = letters[0] ?? "A";
+  const c2 = letters[1] ?? "L";
+
+  const LETTER_W = 2;
+  const GAP = 1.2;
+  const TOTAL_W = LETTER_W * 2 + GAP * 2; // 5.2
+  const pts: [number, number][] = [];
+
+  const addLetter = (ch: string, offsetX: number) => {
+    const strokes = FONT[ch] ?? FONT.A;
+    for (const s of strokes) {
+      for (const [x, y] of sampleStroke(s as [number, number][], 0.16)) {
+        pts.push([x + offsetX - TOTAL_W / 2, y - 2]);
+      }
+    }
+  };
+
+  addLetter(c1, 0);
+  addLetter(c2, LETTER_W + GAP);
+  pts.push([0, 0]); // titik pemisah
+
   const arr = new Float32Array(pts.length * 3);
-  pts.forEach(([x, y], i) => { arr[i*3]=x; arr[i*3+1]=y; arr[i*3+2]=0; });
+  pts.forEach(([x, y], i) => {
+    arr[i * 3] = x;
+    arr[i * 3 + 1] = y;
+    arr[i * 3 + 2] = 0;
+  });
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.BufferAttribute(arr, 3));
   const mat = new THREE.PointsMaterial({
-    size: 0.5, map: glow, color: 0xecd3a1, transparent: true, opacity: 0,
-    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+    size: 0.5,
+    map: glow,
+    color: 0xecd3a1,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    sizeAttenuation: true,
   });
   const group = new THREE.Group();
   group.add(new THREE.Points(g, mat));

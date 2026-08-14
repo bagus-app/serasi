@@ -17,7 +17,9 @@ export async function getStaticPaths() {
 const { wedding } = Astro.props;
 const data = wedding;
 const theme = data.theme ?? "champagne";
-
+const description = data.share?.text
+  ? `${data.share.title} — ${data.share.text}`
+  : `Undangan pernikahan ${data.couple.nick[0]} & ${data.couple.nick[1]} — ${data.date.display}. ${data.tagline}`;
 const skyConfig = {
   memories: data.memories,
   monogram: data.couple.monogram,
@@ -50,7 +52,7 @@ const waDoa =
   );
 ---
 
-<Base title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`} theme={theme}>
+<Base title={`Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`} description={description} theme={theme}>
   <SkyCanvas config={skyConfig} />
   <div class="vignette" aria-hidden="true"></div>
 
@@ -163,7 +165,15 @@ const waDoa =
           <a class="seal" href={waHadir} target="_blank" rel="noopener">Hadir ✦</a>
           <a class="btn" href={waDoa} target="_blank" rel="noopener">Doa dari Jauh</a>
         </div>
-        <button class="btn" id="bagikan" type="button">Bagikan Undangan</button>
+        <button
+          class="btn"
+          id="bagikan"
+          type="button"
+          data-share-title={data.share?.title ?? `Undangan ${data.couple.nick[0]} & ${data.couple.nick[1]}`}
+          data-share-text={data.share?.text ?? data.tagline}
+        >
+          Bagikan Undangan
+        </button>
       </div>
       <footer class="foot">
         <span>{data.couple.monogram} · MMXXVI</span>
@@ -276,20 +286,24 @@ const waDoa =
       }
     });
   });
-  /* — Bagikan — */
-  document.getElementById("bagikan")?.addEventListener("click", async () => {
-    const data = {
-      title: "Undangan Pernikahan",
-      text: "Dua bintang, satu langit. Kami menunggumu ✦",
+  /* — Bagikan (memakai field share dari JSON) — */
+  const bagikanBtn = document.getElementById("bagikan");
+  bagikanBtn?.addEventListener("click", async () => {
+    const shareData = {
+      title: bagikanBtn.dataset.shareTitle ?? "Undangan Pernikahan",
+      text: bagikanBtn.dataset.shareText ?? "Dua bintang, satu langit. Kami menunggumu ✦",
       url: location.href,
     };
     try {
-      if (navigator.share) await navigator.share(data);
-      else {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
         await navigator.clipboard.writeText(location.href);
         showToast("Tautan tersalin ✦");
       }
-    } catch {}
+    } catch {
+      /* tamu membatalkan — tidak apa */
+    }
   });
 </script>
 
@@ -338,16 +352,7 @@ const waDoa =
     letter-spacing: 0.4em;
     color: var(--gold);
   }
-  .cue { margin-top: 4rem; }
-  .cue span {
-    display: block; width: 1px; height: 64px;
-    background: linear-gradient(to bottom, transparent, var(--gold-bright), transparent);
-    animation: napas 3s var(--ease-lux) infinite;
-  }
-  @keyframes napas {
-    0%, 100% { opacity: 0.25; transform: scaleY(0.7); }
-    50% { opacity: 1; transform: scaleY(1); }
-  }
+  
   blockquote {
     font-family: var(--font-display);
     font-style: italic; font-weight: 300;
@@ -477,23 +482,6 @@ const waDoa =
   .card-venue { font-weight: 400; }
   .card-addr { color: var(--ivory-dim); font-size: 0.92em; }
   .card-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.6rem; }
-
-  .btn {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--gold-bright);
-    border: 1px solid var(--hair);
-    padding: 0.75em 1.3em;
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.4s var(--ease-lux), color 0.4s var(--ease-lux), border-color 0.4s;
-  }
-  .btn:hover { background: var(--gold); color: var(--ink); border-color: var(--gold); }
-  .btn--solid { background: var(--gold); color: var(--ink); border-color: var(--gold); }
-  .btn--solid:hover { background: transparent; color: var(--gold-bright); border-color: var(--hair); }
 
   .countline {
     margin-top: 3rem;

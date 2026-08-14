@@ -1,43 +1,52 @@
-# Astro Starter Kit: Minimal
+# 🌌 Langit yang Sama — Undangan Pernikahan Digital Premium
 
-```sh
-npm create astro@latest -- --template minimal
+Satu codebase, banyak pernikahan. Setiap klien = satu file JSON = satu link custom.
+
+## Stack
+Astro (static) · Three.js + GSAP (langit 3D) · TypeScript · CSS murni · Cloudflare Pages
+
+## Mulai
+```bash
+npm install
+npm run dev      # http://localhost:4321
+npm run build    # produksi → dist/
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+## Struktur penting
+```
+src/
+├── content/weddings/      # SATU JSON PER KLIEN  ← semua konten di sini
+├── content.config.ts      # skema Zod (penjaga gerbang data)
+├── pages/[slug].astro     # route undangan (otomatis per klien)
+├── pages/index.astro      # etalase produk
+├── pages/404.astro        # halaman bintang hilang
+├── three/                 # engine 3D netral-data
+│   ├── sky.ts             # langit, kamera, bloom, adaptif FPS
+│   ├── shapes.ts          # 21 rasi + font monogram A–Z
+│   └── mapper.ts          # JSON → objek 3D
+├── components/scenes/     # galeri, video, dress code
+├── scripts/               # reveal, countdown, wishes
+└── styles/                # tokens + base (sumber kebenaran UI)
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Menambah klien (3 langkah)
+1. Salin `src/content/weddings/arka-laras.json` → `nama-klien.json`
+2. Edit isi (lihat `PANDUAN-KONTEN.md`)
+3. Deploy → link `domain.com/nama-klien` hidup
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Personalisasi tamu: `domain.com/nama-klien?to=Nama+Tamu`
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Fitur
+- Langit 3D sinematik: kamera scroll, 21 rasi + custom inline, monogram A–Z
+- Bintang doa tamu (localStorage, namespaced per klien)
+- 4 tema warna: champagne · rose · sage · aurora
+- Tanda kasih + salin rekening · galeri arch · video facade · dress code
+- RSVP & share via WhatsApp · countdown + fase bulan
+- Mobile-first, reduced-motion, auto-degrade FPS, 404 bertema
 
-## 🧞 Commands
+## Deploy (Cloudflare Pages)
+- Build command: `npm run build`
+- Output directory: `dist`
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## Dokumen
+- `PANDUAN-KONTEN.md` — cara mengisi JSON klien (field, shape, tema, foto)

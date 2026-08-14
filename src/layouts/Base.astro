@@ -30,6 +30,12 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <noscript>
+      <style>
+        .rv { opacity: 1; transform: none; }
+        .mask span { transform: none; }
+      </style>
+    </noscript>
   </head>
   <body class={theme !== "champagne" ? `theme-${theme}` : ""}>
     <slot />
