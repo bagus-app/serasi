@@ -7,8 +7,8 @@
   },
   "tagline": "Dua bintang yang memutuskan berbagi satu langit.",
   "date": {
-    "iso": "2026-06-20T08:00:00+07:00",
-    "display": "20 Juni 2026",
+    "iso": "2026-12-12T08:00:00+07:00",
+    "display": "12 Desember 2026",
     "day": "Sabtu"
   },
   "venue": {
@@ -17,8 +17,8 @@
     "maps": "https://maps.google.com/?q=The+Amanuba+Bandung"
   },
   "events": [
-    { "name": "Akad Nikah", "time": "08.00 – 10.00 WIB", "start": "2026-06-20T08:00:00+07:00", "end": "2026-06-20T10:00:00+07:00" },
-    { "name": "Resepsi", "time": "11.00 – 14.00 WIB", "start": "2026-06-20T11:00:00+07:00", "end": "2026-06-20T14:00:00+07:00" }
+    { "name": "Akad Nikah", "time": "08.00 – 10.00 WIB", "start": "2026-12-12T08:00:00+07:00", "end": "2026-12-12T10:00:00+07:00" },
+    { "name": "Resepsi", "time": "11.00 – 14.00 WIB", "start": "2026-12-12T11:00:00+07:00", "end": "2026-12-12T14:00:00+07:00" }
   ],
   "memories": [
     { "shape": "book", "year": "2019", "label": "Pertemuan", "title": "Gerimis di Depan Toko Buku", "text": "Hujan menahan kami di bawah satu payung yang lebih condong ke satu arah. Ada buku yang tak jadi dibeli, dan percakapan yang tak ingin kami sudahi." },
