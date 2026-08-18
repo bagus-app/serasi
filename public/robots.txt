@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://langityangsama.id/sitemap-index.xml
+Sitemap: https://serasi.netasia.workers.dev/sitemap-index.xml
