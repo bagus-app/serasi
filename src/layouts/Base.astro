@@ -42,6 +42,7 @@ const {
     <meta property="og:description" content={description} />
     {ogUrl && <meta property="og:url" content={ogUrl} />}
     {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:locale" content="id_ID" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -53,6 +54,7 @@ const {
         .mask span { transform: none; }
       </style>
     </noscript>
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "GANTI_TOKEN"}'></script>
   </head>
   <body class={theme !== "champagne" ? `theme-${theme}` : ""}>
     <slot />

@@ -3,19 +3,26 @@ interface Props {
   video: { youtubeId: string; caption?: string };
 }
 const { video } = Astro.props;
-const poster = `https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`;
+const posterHQ = `https://i.ytimg.com/vi/${video.youtubeId}/maxresdefault.jpg`;
+const posterSD = `https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`;
 ---
 
 <section class="video" id="video">
   <button class="video-facade rv" type="button" data-yt={video.youtubeId} aria-label="Putar video">
-    <img src={poster} alt="Video prewedding" loading="lazy" />
+    <img src={posterHQ} data-fallback={posterSD} alt="Video prewedding" loading="lazy" />
     <span class="play" aria-hidden="true">▶</span>
   </button>
   {video.caption && <p class="video-caption rv">{video.caption}</p>}
 </section>
 
 <script>
-  // Facade: iframe hanya dimuat setelah diklik → halaman tetap ringan.
+  // Poster: coba HD, turun ke SD bila tidak ada
+  document.querySelectorAll<HTMLImageElement>(".video-facade img").forEach((img) => {
+    img.addEventListener("error", () => {
+      if (img.src !== img.dataset.fallback) img.src = img.dataset.fallback!;
+    }, { once: true });
+  });
+
   document.querySelectorAll<HTMLButtonElement>(".video-facade").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.yt!;
@@ -67,8 +74,6 @@ const poster = `https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`;
     font-style: italic;
     font-family: var(--font-display);
   }
-
-  /* :global → elemen yang dibuat JavaScript tetap mendapat style */
   :global(.video-embed) {
     width: min(100%, 760px);
     aspect-ratio: 16 / 9;

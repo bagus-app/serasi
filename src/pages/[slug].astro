@@ -20,7 +20,16 @@ const theme = data.theme ?? "champagne";
 const description = data.share?.text
   ? `${data.share.title} — ${data.share.text}`
   : `Undangan pernikahan ${data.couple.nick[0]} & ${data.couple.nick[1]} — ${data.date.display}. ${data.tagline}`;
-const skyConfig = {
+const fmtHari = (iso: string) =>
+  new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+
+const firstStart = data.events.map((e) => e.start).sort()[0];
+
+const tanggalUnik = [...new Set(data.events.map((e) => new Date(e.start).getDate()))].sort((a, b) => a - b);
+const bulanTahun = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(data.events[0].start));
+const dateSummary = tanggalUnik.length === 1 ? data.date.display : `${tanggalUnik.join(" & ")} ${bulanTahun}`;
+const kota = data.venue.address.split(",").pop()?.trim();
+  const skyConfig = {
   memories: data.memories,
   monogram: data.couple.monogram,
   theme,
@@ -37,14 +46,14 @@ const toRoman = (n: number) => {
 };
 const ogImage = new URL(`/og/${data.slug}.png`, Astro.url).href;
 // Helper kalender Google
-function makeCalLink(ev: { name: string; start: string; end: string }): string {
-  const fmt = (iso: string) =>
-    new Date(iso).toISOString().replace(/[-:]|\.\d{3}/g, "");
+function makeCalLink(ev: { name: string; start: string; end: string; venue?: { name: string; address: string } }): string {
+  const v = ev.venue ?? data.venue;
+  const fmt = (iso: string) => new Date(iso).toISOString().replace(/[-:]|\.\d{3}/g, "");
   return (
     `https://calendar.google.com/calendar/render?action=TEMPLATE` +
     `&text=${encodeURIComponent(`${ev.name} ${data.couple.nick[0]} & ${data.couple.nick[1]}`)}` +
     `&dates=${fmt(ev.start)}/${fmt(ev.end)}` +
-    `&location=${encodeURIComponent(`${data.venue.name}, ${data.venue.address}`)}` +
+    `&location=${encodeURIComponent(`${v.name}, ${v.address}`)}` +
     `&details=${encodeURIComponent("Menuju satu langit yang sama.")}`
   );
 }
@@ -68,7 +77,7 @@ const waDoa =
   theme={theme}
   ogUrl={Astro.url.href}
   ogImage={ogImage}
->
+> <div class="stars" aria-hidden="true"></div>
   <SkyCanvas config={skyConfig} />
   <div class="vignette" aria-hidden="true"></div>
 
@@ -83,7 +92,7 @@ const waDoa =
         <span class="name">{data.couple.nick[1]}</span>
       </h1>
       <p class="tagline">{data.tagline}</p>
-      <p class="date">{data.date.display} — {data.venue.address.split(",").pop()?.trim()}</p>
+      <p class="date">{dateSummary} — {kota}</p>
       <div class="cue" aria-hidden="true"><span></span></div>
     </section>
 
@@ -115,23 +124,27 @@ const waDoa =
 
       <div class="cards">
         {
-          data.events.map((ev) => (
-            <article class="card rv">
-              <span class="card-star" aria-hidden="true">✦</span>
-              <h3>{ev.name}</h3>
-              <p class="card-time">{ev.time}</p>
-              <p class="card-venue">{data.venue.name}</p>
-              <p class="card-addr">{data.venue.address}</p>
-              <div class="card-actions">
-                <a class="btn btn--solid" href={data.venue.maps} target="_blank" rel="noopener">Lihat Peta</a>
-                <a class="btn" href={makeCalLink(ev)} target="_blank" rel="noopener">Simpan Tanggal</a>
-              </div>
-            </article>
-          ))
+          data.events.map((ev) => {
+            const v = ev.venue ?? data.venue;
+            return (
+              <article class="card rv">
+                <span class="card-star" aria-hidden="true">✦</span>
+                <h3>{ev.name}</h3>
+                <p class="card-date">{fmtHari(ev.start)}</p>
+                <p class="card-time">{ev.time}</p>
+                <p class="card-venue">{v.name}</p>
+                <p class="card-addr">{v.address}</p>
+                <div class="card-actions">
+                  <a class="btn btn--solid" href={v.maps} target="_blank" rel="noopener">Lihat Peta</a>
+                  <a class="btn" href={makeCalLink(ev)} target="_blank" rel="noopener">Simpan Tanggal</a>
+                </div>
+              </article>
+            );
+          })
         }
       </div>
 
-      <p class="countline" id="hitung-mundur" data-iso={data.date.iso}>menghitung bintang…</p>
+      <p class="countline" id="hitung-mundur" data-iso={firstStart}>menghitung bintang…</p>
     </section>
     {data.dresscode && <SceneDresscode dresscode={data.dresscode} />}
     <!-- Tanda Kasih -->
@@ -167,7 +180,7 @@ const waDoa =
         <textarea id="doa-pesan" placeholder="Tulis doamu untuk kedua mempelai…" required maxlength="220" rows="3"></textarea>
         <button class="btn btn--solid" type="submit">Lahirkan Bintang ✦</button>
       </form>
-
+      <p class="doa-note rv">Doa tersimpan sebagai bintang di langit ini.</p>
       <p class="doa-count" id="doa-count">0 bintang doa lahir dari layar ini</p>
       <ul class="doa-list" id="doa-list"></ul>
     </section>
@@ -208,7 +221,11 @@ const waDoa =
       description,
       url: Astro.url.href,
       image: ogImage,
-      location: { "@type": "Place", name: data.venue.name, address: data.venue.address },
+      location: {
+      "@type": "Place",
+      name: (data.events[0].venue ?? data.venue).name,
+      address: (data.events[0].venue ?? data.venue).address,
+    },
     })
   }
   </script>
@@ -249,6 +266,7 @@ const waDoa =
       el = document.createElement("div");
       el.id = "toast";
       document.body.appendChild(el);
+      el.setAttribute("role", "status");
     }
     el.textContent = msg;
     el.classList.add("show");
@@ -699,4 +717,20 @@ const waDoa =
     letter-spacing: 0.08em;
   }
   .gift-holder { color: var(--ivory-dim); font-size: 0.92em; margin-bottom: 1rem; }
+  .card-date {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ivory-dim);
+    margin-bottom: 0.2rem;
+  }
+  .doa-note {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ivory-dim);
+  }
 </style>

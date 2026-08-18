@@ -7,6 +7,12 @@ const SHAPE_NAMES = [
   "crux","orion","cassiopeia","lyra","big-dipper",
 ] as const;
 
+const venueSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  maps: z.string().url(),
+});
+
 const weddings = defineCollection({
   loader: glob({ pattern: "**/*.json", base: "./src/content/weddings" }),
   schema: z.object({
@@ -18,9 +24,15 @@ const weddings = defineCollection({
     }),
     tagline: z.string(),
     date: z.object({ iso: z.string(), display: z.string(), day: z.string() }),
-    venue: z.object({ name: z.string(), address: z.string(), maps: z.string().url() }),
+    venue: venueSchema,
     events: z.array(
-      z.object({ name: z.string(), time: z.string(), start: z.string(), end: z.string() })
+      z.object({
+        name: z.string(),
+        time: z.string(),
+        start: z.string(),
+        end: z.string(),
+        venue: venueSchema.optional(), // ← BARU: beda tempat? isi ini
+      })
     ).min(1),
     memories: z.array(
       z.object({

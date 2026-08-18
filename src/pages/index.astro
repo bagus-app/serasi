@@ -126,7 +126,33 @@ const demo = weddings[0];
         </article>
       </div>
     </section>
-
+    <!-- FAQ -->
+    <section class="wrap faq">
+      <p class="kicker rv">Tanya Jawab</p>
+      <h2 class="section-title rv">Sebelum Kamu Bertanya</h2>
+      <div class="faq-list">
+        <details class="faq-item rv">
+          <summary>Berapa lama pengerjaannya?</summary>
+          <p>±3 hari kerja setelah data lengkap. Butuh lebih cepat? Kabari kami.</p>
+        </details>
+        <details class="faq-item rv">
+          <summary>Apakah tamu perlu instal aplikasi?</summary>
+          <p>Tidak. Tamu cukup klik link — berjalan di browser HP apa pun.</p>
+        </details>
+        <details class="faq-item rv">
+          <summary>Foto & video dari mana?</summary>
+          <p>Kiriman kalian. Kami optimalkan agar ringan dan cantik.</p>
+        </details>
+        <details class="faq-item rv">
+          <summary>Bisa revisi?</summary>
+          <p>Ya, sesuai paket. Paket Premium 3×, Sultan tanpa batas.</p>
+        </details>
+        <details class="faq-item rv">
+          <summary>Apakah doa tamu bisa kami baca?</summary>
+          <p>Bisa. Seluruh doa terkumpul dan dapat kalian unduh sebagai buku tamu digital.</p>
+        </details>
+      </div>
+    </section>
     <!-- KONTAK -->
     <section class="wrap contact" id="kontak">
       <p class="kicker rv">Kontak</p>
@@ -405,4 +431,10 @@ const demo = weddings[0];
       gap: 0.5rem;
     }
   }
+  .faq-list { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 0.8rem; }
+  .faq-item { border: 1px solid var(--hair); background: rgba(18,14,30,.55); padding: 1.1rem 1.3rem; }
+  .faq-item summary { cursor: pointer; font-family: var(--font-display); font-style: italic; font-size: var(--step-1); color: var(--ivory); list-style: none; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item[open] summary { color: var(--gold-bright); }
+  .faq-item p { margin-top: 0.6rem; color: var(--ivory-dim); }
 </style>
