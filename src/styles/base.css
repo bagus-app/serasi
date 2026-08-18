@@ -165,14 +165,22 @@ body {
 
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-      animation-duration: 0.001s !important;
-      transition-duration: 0.001s !important;
-    }
-
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important; /* jangan loop */
+    transition-duration: 0.001s !important;
+  }
+  /* Hentikan total loop dekoratif — diam, bukan strobo */
+  .orbit,
+  .ribbon-track,
+  .dial-ticks,
+  .cue span,
+  .g-item img {
+    animation: none !important;
+  }
+}
   /* — Preset tema: langit tetap malam, aksen bergeser — */
   .theme-rose   { --gold: #d29a91; --gold-bright: #f2cfc7; --hair: rgba(210, 154, 145, 0.25); }
   .theme-sage   { --gold: #a8b8a0; --gold-bright: #d3e2cb; --hair: rgba(168, 184, 160, 0.25); }
   .theme-aurora { --gold: #8f9ec9; --gold-bright: #c9d4f2; --hair: rgba(143, 158, 201, 0.25); }
-}
