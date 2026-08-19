@@ -1,41 +1,72 @@
-/**
- * Sistem bintang doa — data dipisah per klien (namespace),
- * jadi doa tamu Arka tidak bocor ke tamu Putri.
- */
+import { supabase } from "../lib/supabase";
 
 export interface Wish {
+  id?: number;
   nama: string;
   pesan: string;
+  created_at?: string;
 }
 
-export class WishStore {
-  private key: string;
-  private wishes: Wish[] = [];
+export const live = supabase !== null;
 
-  constructor(slug: string) {
-    this.key = `langit-doa:${slug}`;
-    try {
-      this.wishes = JSON.parse(localStorage.getItem(this.key) ?? "[]");
-    } catch {
-      this.wishes = [];
-    }
-  }
+const localKey = (slug: string) => `langit-doa:${slug}`;
 
-  all(): Wish[] {
-    return this.wishes;
+function localAll(slug: string): Wish[] {
+  try {
+    return JSON.parse(localStorage.getItem(localKey(slug)) ?? "[]");
+  } catch {
+    return [];
   }
+}
 
-  count(): number {
-    return this.wishes.length;
+export async function loadWishes(slug: string): Promise<Wish[]> {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("wishes")
+      .select("id, nama, pesan, created_at")
+      .eq("slug", slug)
+      .order("id", { ascending: true })
+      .limit(500);
+    if (!error && data) return data as Wish[];
+    return [];
   }
+  return localAll(slug);
+}
 
-  add(wish: Wish): void {
-    this.wishes.push(wish);
-    while (this.wishes.length > 50) this.wishes.shift();
-    localStorage.setItem(this.key, JSON.stringify(this.wishes));
+export async function addWish(
+  slug: string,
+  wish: { nama: string; pesan: string }
+): Promise<Wish> {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("wishes")
+      .insert({ slug, nama: wish.nama, pesan: wish.pesan })
+      .select()
+      .single();
+    if (!error && data) return data as Wish;
   }
+  const w: Wish = { ...wish };
+  const all = localAll(slug);
+  all.push(w);
+  while (all.length > 50) all.shift();
+  localStorage.setItem(localKey(slug), JSON.stringify(all));
+  return w;
+}
 
-  latest(n: number): Wish[] {
-    return this.wishes.slice(-n).reverse();
-  }
+export function onNewWish(slug: string, cb: (w: Wish) => void): () => void {
+  if (!supabase) return () => {};
+  const sb = supabase; // lokal & pasti non-null di dalam closure
+
+  const ch = sb
+    .channel(`wishes-${slug}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "wishes", filter: `slug=eq.${slug}` },
+      (payload) => cb(payload.new as Wish)
+    )
+    .subscribe();
+
+  return () => {
+    sb.removeChannel(ch);
+  };
 }

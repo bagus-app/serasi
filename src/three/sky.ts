@@ -168,6 +168,24 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
   scene.add(mono.group);
 
   /* ============ BINTANG DOA ============ */
+    // Posisi deterministik dari seed → langit sama di semua perangkat
+  function seededPos(seed: number) {
+    let s = (seed % 2147483646) + 1;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    return {
+      x: (rnd() - 0.5) * 34,
+      y: (rnd() - 0.5) * 18,
+      z: -14 - rnd() * 62,
+    };
+  }
+
+  function placeWishSeeded(seed: number): THREE.Sprite {
+    const s = placeWish(false);
+    const p = seededPos(seed);
+    s.position.set(p.x, p.y, p.z);
+    return s;
+  }
+  
   function placeWish(nearCamera: boolean): THREE.Sprite {
     const s = new THREE.Sprite(
       new THREE.SpriteMaterial({
@@ -389,21 +407,38 @@ export function initSky(canvas: HTMLCanvasElement, config: SkyConfig): SkyHandle
     targetP = clamp01(e.detail);
   }) as EventListener);
 
-  addEventListener("sky:spawnWish", () => {
-    const s = placeWish(true);
-    if (!reduced) {
-      gsap.to(s.material, { opacity: 0.95, duration: 0.5 });
-      gsap.to(s.scale, { x: 2.2, y: 2.2, duration: 1.6, ease: "back.out(2.5)" });
+    addEventListener("sky:spawnWish", ((e: CustomEvent<{ seed?: number } | undefined>) => {
+    const seed = e.detail?.seed;
+    if (seed != null) {
+      const s = placeWishSeeded(seed);
+      (s.material as THREE.SpriteMaterial).opacity = 0;
+      if (!reduced) {
+        gsap.to(s.material, { opacity: 0.9, duration: 0.8 });
+        gsap.to(s.scale, { x: 1.8, y: 1.8, duration: 1.4, ease: "back.out(2)" });
+      } else {
+        s.scale.setScalar(1.8);
+        (s.material as THREE.SpriteMaterial).opacity = 0.9;
+        composer.render();
+      }
     } else {
-      s.scale.setScalar(2);
-      (s.material as THREE.SpriteMaterial).opacity = 0.9;
-      composer.render();
+      const s = placeWish(true);
+      if (!reduced) {
+        gsap.to(s.material, { opacity: 0.95, duration: 0.5 });
+        gsap.to(s.scale, { x: 2.2, y: 2.2, duration: 1.6, ease: "back.out(2.5)" });
+      } else {
+        s.scale.setScalar(2);
+        (s.material as THREE.SpriteMaterial).opacity = 0.9;
+        composer.render();
+      }
     }
-  });
+  }) as EventListener);
 
-  addEventListener("sky:restoreWish", ((e: CustomEvent<number>) => {
-    const count = e.detail;
-    for (let i = 0; i < count; i++) placeWish(false);
+  addEventListener("sky:restoreWish", ((e: CustomEvent<number[]>) => {
+    (e.detail ?? []).forEach((seed) => {
+      const s = placeWishSeeded(seed);
+      s.scale.setScalar(1.8);
+      (s.material as THREE.SpriteMaterial).opacity = 0.85;
+    });
     if (reduced) composer.render();
   }) as EventListener);
 

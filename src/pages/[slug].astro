@@ -236,7 +236,6 @@ const waDoa =
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { initReveal } from "../scripts/reveal";
   import { initCountdown } from "../scripts/countdown";
-  import { WishStore } from "../scripts/wishes";
 
   gsap.registerPlugin(ScrollTrigger);
   initReveal();
@@ -287,42 +286,65 @@ const waDoa =
     });
   }
 
-  /* — Bintang Doa (namespaced per klien) — */
-  const store = new WishStore(slug);
-  const form = document.getElementById("doa-form") as HTMLFormElement | null;
-  const countEl = document.getElementById("doa-count");
-  const listEl = document.getElementById("doa-list");
+    /* — Bintang Doa: live (Supabase) atau fallback lokal — */
+  (async () => {
+    const { loadWishes, addWish, onNewWish } = await import("../scripts/wishes");
+    const seedOf = (w: { id?: number }, i: number) => w.id ?? 1000 + i;
 
-  function renderWishes() {
-    if (countEl) countEl.textContent = `${store.count()} bintang doa lahir dari layar ini`;
-    if (!listEl) return;
-    listEl.innerHTML = "";
-    store.latest(3).forEach((w) => {
+    const wishes = await loadWishes(slug);
+    const form = document.getElementById("doa-form") as HTMLFormElement | null;
+    const countEl = document.getElementById("doa-count");
+    const listEl = document.getElementById("doa-list");
+    let lastOwnId: number | null = null;
+
+    const currentCount = () => parseInt(countEl?.textContent ?? "0", 10) || 0;
+    const renderCount = (n: number) => {
+      if (countEl) countEl.textContent = `${n} bintang doa lahir dari layar ini`;
+    };
+    const pushItem = (w: { nama: string; pesan: string }) => {
+      if (!listEl) return;
       const li = document.createElement("li");
       const q = document.createElement("p");
-      q.textContent = `"${w.pesan}"`;
+      q.textContent = `“${w.pesan}”`;
       const n = document.createElement("span");
       n.textContent = w.nama ? `— ${w.nama}` : "— tanpa nama";
       li.append(q, n);
-      listEl.appendChild(li);
+      listEl.prepend(li);
+      while (listEl.children.length > 3) listEl.lastElementChild?.remove();
+    };
+
+    renderCount(wishes.length);
+    wishes.slice(-3).reverse().forEach(pushItem);
+    window.dispatchEvent(
+      new CustomEvent("sky:restoreWish", { detail: wishes.map((w, i) => seedOf(w, i)) })
+    );
+
+    onNewWish(slug, (w) => {
+      if (w.id != null && w.id === lastOwnId) return; // hindari dobel di perangkat penulis
+      renderCount(currentCount() + 1);
+      pushItem(w);
+      window.dispatchEvent(
+        new CustomEvent("sky:spawnWish", { detail: { seed: w.id ?? Date.now() % 100000 } })
+      );
+      showToast("Bintang doa baru lahir ✦");
     });
-  }
 
-  // Restore bintang-bintang lama di langit
-  window.dispatchEvent(new CustomEvent("sky:restoreWish", { detail: store.count() }));
-  renderWishes();
-
-  form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const pesan = (document.getElementById("doa-pesan") as HTMLTextAreaElement).value.trim();
-    if (!pesan) return;
-    const nama = (document.getElementById("doa-nama") as HTMLInputElement).value.trim();
-    store.add({ nama, pesan });
-    renderWishes();
-    form.reset();
-    showToast("Bintang doamu telah lahir ✦");
-    window.dispatchEvent(new CustomEvent("sky:spawnWish"));
-  });
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pesan = (document.getElementById("doa-pesan") as HTMLTextAreaElement).value.trim();
+      if (!pesan) return;
+      const nama = (document.getElementById("doa-nama") as HTMLInputElement).value.trim();
+      const w = await addWish(slug, { nama, pesan });
+      if (w.id != null) lastOwnId = w.id;
+      renderCount(currentCount() + 1);
+      pushItem(w);
+      window.dispatchEvent(
+        new CustomEvent("sky:spawnWish", { detail: { seed: w.id ?? 1000 + wishes.length } })
+      );
+      form.reset();
+      showToast("Bintang doamu telah lahir ✦");
+    });
+  })();
   /* — Salin nomor rekening — */
   document.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
