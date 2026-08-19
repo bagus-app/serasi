@@ -72,7 +72,7 @@
     }
   ],
   "gifts": [
-    { "bank": "BCA", "number": "1234 5678 90", "holder": "Arka Pradipta" },
+    { "bank": "BCA", "number": "1234 5678 99", "holder": "Arka Pradipta" },
     { "bank": "Mandiri", "number": "9876 5432 10", "holder": "Laras Ayudia" }
   ],
   "contact": { "whatsapp": "6281200000000" },
