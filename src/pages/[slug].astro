@@ -242,7 +242,7 @@ const waDoa =
   initCountdown();
 
   // Ambil slug dari URL
-  const slug = window.location.pathname.split("/").pop() || "default";
+    const slug = window.location.pathname.split("/").filter(Boolean)[0] ?? "default";
 
   /* — Personalisasi ?to= — */
   const params = new URLSearchParams(window.location.search);
